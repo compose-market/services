@@ -1,0 +1,9 @@
+.env
+/node_modules
+/dist
+/connector/data
+/connector/dist
+/exporter/data
+/exporter/dist
+/sandbox/data
+/sandbox/dist
