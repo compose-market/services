@@ -4,7 +4,7 @@
  * Core orchestrator that executes workflow steps sequentially,
  * calling the Connector Hub for each step and maintaining shared context.
  */
-import { CONNECTOR_BASE_URL, CONNECTOR_TIMEOUT_MS, MAX_WORKFLOW_STEPS } from "./config.js";
+import { CONNECTOR_BASE_URL, CONNECTOR_TIMEOUT_MS, MAX_WORKFLOW_STEPS } from "../../shared/config.js";
 import { resolveTemplate } from "./template.js";
 import type {
   WorkflowDefinition,
@@ -28,10 +28,10 @@ async function callConnectorTool(
   args: Record<string, unknown>
 ): Promise<ConnectorCallResponse> {
   const url = `${CONNECTOR_BASE_URL}/connectors/${encodeURIComponent(connectorId)}/call`;
-  
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), CONNECTOR_TIMEOUT_MS);
-  
+
   try {
     const response = await fetch(url, {
       method: "POST",
@@ -41,24 +41,24 @@ async function callConnectorTool(
       body: JSON.stringify({ toolName, args }),
       signal: controller.signal
     });
-    
+
     clearTimeout(timeoutId);
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(
         `Connector call failed (${response.status} ${response.statusText}): ${errorText}`
       );
     }
-    
+
     return await response.json() as ConnectorCallResponse;
   } catch (error) {
     clearTimeout(timeoutId);
-    
+
     if (error instanceof Error && error.name === "AbortError") {
       throw new Error(`Connector call timed out after ${CONNECTOR_TIMEOUT_MS}ms`);
     }
-    
+
     throw error;
   }
 }
@@ -75,22 +75,22 @@ async function executeStep(
   context: Record<string, unknown>
 ): Promise<{ log: StepLog; result?: ConnectorCallResponse }> {
   const startedAt = new Date().toISOString();
-  
+
   // Resolve template placeholders in arguments
   const resolvedArgs = resolveTemplate<Record<string, unknown>>(
     step.inputTemplate,
     context
   );
-  
+
   try {
     const result = await callConnectorTool(
       step.connectorId,
       step.toolName,
       resolvedArgs
     );
-    
+
     const finishedAt = new Date().toISOString();
-    
+
     // Check if the connector reported an error
     if (!result.success) {
       return {
@@ -107,7 +107,7 @@ async function executeStep(
         }
       };
     }
-    
+
     return {
       log: {
         stepId: step.id,
@@ -125,7 +125,7 @@ async function executeStep(
   } catch (error) {
     const finishedAt = new Date().toISOString();
     const message = error instanceof Error ? error.message : String(error);
-    
+
     return {
       log: {
         stepId: step.id,
@@ -175,24 +175,24 @@ export async function runWorkflow(
       }]
     };
   }
-  
+
   // Initialize context with input
   const context: Record<string, unknown> = {
     input: initialInput
   };
-  
+
   const logs: StepLog[] = [];
-  
+
   console.log(`[workflow] Starting "${workflow.name}" (${workflow.id}) with ${workflow.steps.length} step(s)`);
-  
+
   // Execute steps sequentially
   for (let i = 0; i < workflow.steps.length; i++) {
     const step = workflow.steps[i];
     console.log(`[workflow] Step ${i + 1}/${workflow.steps.length}: ${step.name} (${step.connectorId}/${step.toolName})`);
-    
+
     const { log, result } = await executeStep(step, context);
     logs.push(log);
-    
+
     if (log.status === "error") {
       console.log(`[workflow] Step failed: ${log.error}`);
       return {
@@ -202,16 +202,16 @@ export async function runWorkflow(
         logs
       };
     }
-    
+
     // Store result in context under saveAs key
     if (result) {
       context[step.saveAs] = result;
       console.log(`[workflow] Step completed, saved to context.${step.saveAs}`);
     }
   }
-  
+
   console.log(`[workflow] Completed successfully`);
-  
+
   return {
     workflowId: workflow.id,
     success: true,
@@ -228,30 +228,30 @@ export async function runWorkflow(
  */
 export function validateWorkflow(workflow: WorkflowDefinition): string[] {
   const errors: string[] = [];
-  
+
   if (!workflow.id || workflow.id.trim() === "") {
     errors.push("Workflow ID is required");
   }
-  
+
   if (!workflow.name || workflow.name.trim() === "") {
     errors.push("Workflow name is required");
   }
-  
+
   if (!workflow.steps || workflow.steps.length === 0) {
     errors.push("Workflow must have at least one step");
   }
-  
+
   if (workflow.steps.length > MAX_WORKFLOW_STEPS) {
     errors.push(`Workflow exceeds maximum of ${MAX_WORKFLOW_STEPS} steps`);
   }
-  
+
   const stepIds = new Set<string>();
   const saveAsKeys = new Set<string>();
-  
+
   for (let i = 0; i < workflow.steps.length; i++) {
     const step = workflow.steps[i];
     const prefix = `Step ${i + 1}`;
-    
+
     if (!step.id || step.id.trim() === "") {
       errors.push(`${prefix}: ID is required`);
     } else if (stepIds.has(step.id)) {
@@ -259,19 +259,19 @@ export function validateWorkflow(workflow: WorkflowDefinition): string[] {
     } else {
       stepIds.add(step.id);
     }
-    
+
     if (!step.name || step.name.trim() === "") {
       errors.push(`${prefix}: Name is required`);
     }
-    
+
     if (!step.connectorId || step.connectorId.trim() === "") {
       errors.push(`${prefix}: Connector ID is required`);
     }
-    
+
     if (!step.toolName || step.toolName.trim() === "") {
       errors.push(`${prefix}: Tool name is required`);
     }
-    
+
     if (!step.saveAs || step.saveAs.trim() === "") {
       errors.push(`${prefix}: saveAs is required`);
     } else if (saveAsKeys.has(step.saveAs)) {
@@ -280,7 +280,7 @@ export function validateWorkflow(workflow: WorkflowDefinition): string[] {
       saveAsKeys.add(step.saveAs);
     }
   }
-  
+
   return errors;
 }
 

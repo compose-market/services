@@ -8,15 +8,15 @@
  *
  * Usage:
  *   pm2 start ecosystem.config.cjs
- *   pm2 restart services
- *   pm2 stop services
- *   pm2 logs services
+ *   pm2 restart all
+ *   pm2 stop all
+ *   pm2 logs
  */
 module.exports = {
     apps: [
         {
             name: "connector",
-            script: "connector/dist/src/server.js",
+            script: "connector/dist/connector/src/server.js",
             cwd: "/home/ubuntu/services",
             instances: 1,
             autorestart: true,
@@ -24,7 +24,6 @@ module.exports = {
             max_memory_restart: "500M",
             env: {
                 NODE_ENV: "production",
-                PORT: 4001,
             },
             error_file: "/home/ubuntu/logs/connector-error.log",
             out_file: "/home/ubuntu/logs/connector-out.log",
@@ -32,7 +31,7 @@ module.exports = {
         },
         {
             name: "sandbox",
-            script: "sandbox/dist/src/server.js",
+            script: "sandbox/dist/sandbox/src/server.js",
             cwd: "/home/ubuntu/services",
             instances: 1,
             autorestart: true,
@@ -40,7 +39,6 @@ module.exports = {
             max_memory_restart: "500M",
             env: {
                 NODE_ENV: "production",
-                PORT: 4002,
             },
             error_file: "/home/ubuntu/logs/sandbox-error.log",
             out_file: "/home/ubuntu/logs/sandbox-out.log",
@@ -48,7 +46,7 @@ module.exports = {
         },
         {
             name: "exporter",
-            script: "exporter/dist/src/server.js",
+            script: "exporter/dist/exporter/src/server.js",
             cwd: "/home/ubuntu/services",
             instances: 1,
             autorestart: true,
@@ -56,24 +54,10 @@ module.exports = {
             max_memory_restart: "500M",
             env: {
                 NODE_ENV: "production",
-                PORT: 4003,
             },
             error_file: "/home/ubuntu/logs/exporter-error.log",
             out_file: "/home/ubuntu/logs/exporter-out.log",
             log_date_format: "YYYY-MM-DD HH:mm:ss Z",
         },
     ],
-
-    // Deploy configuration is optional but useful for remote deploys
-    deploy: {
-        production: {
-            user: "ubuntu",
-            host: "services.compose.market",
-            ref: "origin/main",
-            repo: "git@github.com:your-repo/compose-market.git",
-            path: "/home/ubuntu/services",
-            "post-deploy":
-                "npm install && npm run build && pm2 reload ecosystem.config.cjs --env production",
-        },
-    },
 };

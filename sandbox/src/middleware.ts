@@ -1,7 +1,7 @@
 import { type Request, type Response, type NextFunction } from "express";
 import { createThirdwebClient } from "thirdweb";
 
-import { extractPaymentInfo, buildPaymentRequiredHeaders, handleX402Payment } from "./payment.js";
+import { extractPaymentInfo, buildPaymentRequiredHeaders, handleX402Payment } from "../../shared/payment.js";
 import { THIRDWEB_CHAIN_IDS } from "./schema.js";
 
 // Initialize Thirdweb Client
