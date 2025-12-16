@@ -11,7 +11,7 @@ import type {
   ComposeSupportedInterface,
 } from "./schema.js";
 import { DEFAULT_PAYMENT_CONFIG, THIRDWEB_CHAIN_IDS } from "./schema.js";
-import type { UnifiedServerRecord, GlamaMcpServer } from "./registry.js";
+import type { UnifiedServerRecord, McpServer } from "./registry.js";
 import type { InternalMcpServer } from "./internal.js";
 
 /** Options for building agent cards */
@@ -96,12 +96,12 @@ export function buildAgentCardFromRegistry(
   ];
   
   // Add MCP interface for external servers
-  if (record.origin === "glama" && record.raw) {
-    const glamaServer = record.raw as GlamaMcpServer;
-    if (glamaServer.url) {
+  if (record.origin === "mcp" && record.raw) {
+    const mcpServer = record.raw as McpServer;
+    if (mcpServer.url) {
       supportedInterfaces.push({
         protocolBinding: "MCP",
-        url: glamaServer.url,
+        url: mcpServer.url,
         version: new Date().toISOString().slice(0, 10),
       });
     }
@@ -118,13 +118,13 @@ export function buildAgentCardFromRegistry(
   
   // Build MCP binding for external servers
   let mcp: ComposeAgentCard["mcp"];
-  if (record.origin === "glama") {
-    const glamaServer = record.raw as GlamaMcpServer;
+  if (record.origin === "mcp") {
+    const mcpServer = record.raw as McpServer;
     mcp = {
-      transport: glamaServer.attributes?.includes("hosting:remote-capable")
+      transport: mcpServer.attributes?.includes("hosting:remote-capable")
         ? "remote-http"
         : "stdio",
-      endpoint: glamaServer.repository?.url || glamaServer.url || record.registryId,
+      endpoint: mcpServer.repository?.url || mcpServer.url || record.registryId,
     };
   }
   

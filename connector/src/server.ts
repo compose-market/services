@@ -27,7 +27,60 @@ import {
 } from "../../shared/payment.js";
 
 const app = express();
-app.use(cors({ origin: true, credentials: true }));
+
+// CORS Configuration with wildcard subdomain support and proper preflight handling
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    // Allow requests with no origin (mobile apps, Postman, curl, server-to-server)
+    if (!origin) return callback(null, true);
+
+    // Define allowed origin patterns
+    const allowedOrigins = [
+      'http://localhost:5173',           // Local dev (Vite)
+      'http://localhost:3000',           // Alternative local dev port
+      'https://compose.market',          // Production root
+      'https://www.compose.market',      // Production www
+    ];
+
+    // Check exact matches first
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+
+    // Check wildcard patterns
+    const wildcardPatterns = [
+      /^https:\/\/[\w-]+\.compose\.market$/,  // https://*.compose.market (any subdomain)
+      /^https:\/\/www\.[\w-]+\.compose\.market$/,  // https://www.*.compose.market
+    ];
+
+    for (const pattern of wildcardPatterns) {
+      if (pattern.test(origin)) {
+        return callback(null, true);
+      }
+    }
+
+    // Origin not allowed
+    console.warn(`[CORS] Blocked origin: ${origin}`);
+    callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  credentials: true,                     // Allow cookies and credentials
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Payment-Data',                    // x402 payment data
+    'X-Payment-Signature',               // x402 signature
+    'X-Payment-Timestamp',               // x402 timestamp
+    'X-Requested-With',
+  ],
+  exposedHeaders: [
+    'X-Payment-Required',                // x402 challenge header
+    'X-Payment-Challenge',               // x402 challenge data
+  ],
+  maxAge: 86400,                        // Cache preflight for 24 hours (in seconds)
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Mount the MCP registry router
@@ -74,27 +127,61 @@ app.get("/health", (_req: Request, res: Response) => {
   });
 });
 
+/**
+ * GET /registry/servers/:id/spawn
+ * Get spawn configuration for an MCP server
+ */
+app.get(
+  "/registry/servers/:id/spawn",
+  asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const { getServerSpawnConfig } = await import("./registry.js");
+    const config = getServerSpawnConfig(id);
+
+    if (!config) {
+      res.status(404).json({
+        error: `Server ${id} is not installed or configured for spawning`,
+        hint: "Only pre-installed servers can be spawned in production"
+      });
+      return;
+    }
+
+    res.json(config);
+  })
+);
+
 // =============================================================================
 // MCP Server Proxy Routes
 // =============================================================================
 
 /**
  * GET /mcp/servers
- * Proxy to MCP server - list all spawnable servers
+ * List spawnable MCP servers from local registry
  */
 app.get(
   "/mcp/servers",
   asyncHandler(async (_req: Request, res: Response) => {
-    try {
-      const response = await fetch(`${MCP_SERVER_URL}/servers`);
-      const data = await response.json();
-      res.json(data);
-    } catch (error) {
-      res.status(503).json({
-        error: "MCP server unavailable",
-        message: error instanceof Error ? error.message : String(error),
-      });
-    }
+    // Get MCP servers from local registry, not from MCP server (circular dependency!)
+    const { getRegistry } = await import("./registry.js");
+    const registry = await getRegistry();
+
+    // Filter for MCP servers only
+    const mcpServers = registry.filter((s: UnifiedServerRecord) => s.origin === 'mcp');
+
+    res.json({
+      servers: mcpServers.map((s: UnifiedServerRecord) => ({
+        id: s.registryId,
+        slug: s.slug,
+        name: s.name,
+        description: s.description,
+        category: s.category,
+        tags: s.tags,
+        origin: s.origin,
+        executable: s.executable,
+      })),
+      total: mcpServers.length,
+    });
   })
 );
 
@@ -127,7 +214,7 @@ app.get(
   asyncHandler(async (req: Request, res: Response) => {
     const { slug } = req.params;
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/servers/${encodeURIComponent(slug)}/tools`);
+      const response = await fetch(`${MCP_SERVER_URL}/mcp/servers/${encodeURIComponent(slug)}/tools`);
       const data = await response.json();
       res.status(response.status).json(data);
     } catch (error) {
@@ -185,16 +272,182 @@ app.post(
     }
 
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/servers/${encodeURIComponent(slug)}/call`, {
+      // Use the new /mcp/servers/:serverId/tools/:toolName endpoint
+      const toolName = parseResult.data.tool;
+      const response = await fetch(`${MCP_SERVER_URL}/mcp/servers/${encodeURIComponent(slug)}/tools/${encodeURIComponent(toolName)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parseResult.data),
+        body: JSON.stringify({ args: parseResult.data.args }),
       });
       const data = await response.json();
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
         error: `Failed to call tool on ${slug}`,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  })
+);
+
+// =============================================================================
+// MCP Server Spawning Routes (Proxied to MCP Server)
+// =============================================================================
+
+/**
+ * POST /mcp/spawn
+ * Proxy to MCP server - spawn an MCP server and create session
+ */
+app.post(
+  "/mcp/spawn",
+  asyncHandler(async (req: Request, res: Response) => {
+    // x402 Payment Verification
+    const { paymentData } = extractPaymentInfo(
+      req.headers as Record<string, string | string[] | undefined>
+    );
+
+    const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
+    const paymentResult = await handleX402Payment(
+      paymentData,
+      resourceUrl,
+      "POST",
+      DEFAULT_PRICES.MCP_TOOL_CALL, // Same as tool execution
+    );
+
+    if (paymentResult.status !== 200) {
+      Object.entries(paymentResult.responseHeaders).forEach(([key, value]) => {
+        res.setHeader(key, value);
+      });
+      res.status(paymentResult.status).json(paymentResult.responseBody);
+      return;
+    }
+    console.log(`[x402] Payment verified for mcp/spawn`);
+
+    // Proxy to MCP server
+    try {
+      const response = await fetch(`${MCP_SERVER_URL}/mcp/spawn`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(req.body),
+      });
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } catch (error) {
+      res.status(503).json({
+        error: "MCP server unavailable",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  })
+);
+
+/**
+ * GET /mcp/sessions
+ * Proxy to MCP server - list active sessions
+ */
+app.get(
+  "/mcp/sessions",
+  asyncHandler(async (_req: Request, res: Response) => {
+    try {
+      const response = await fetch(`${MCP_SERVER_URL}/mcp/sessions`);
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      res.status(503).json({
+        error: "MCP server unavailable",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  })
+);
+
+/**
+ * GET /mcp/sessions/:sessionId/tools
+ * Proxy to MCP server - get tools from session
+ */
+app.get(
+  "/mcp/sessions/:sessionId/tools",
+  asyncHandler(async (req: Request, res: Response) => {
+    const { sessionId } = req.params;
+    try {
+      const response = await fetch(`${MCP_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}/tools`);
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } catch (error) {
+      res.status(503).json({
+        error: "MCP server unavailable",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  })
+);
+
+/**
+ * POST /mcp/sessions/:sessionId/execute
+ * Proxy to MCP server - execute tool on session
+ */
+app.post(
+  "/mcp/sessions/:sessionId/execute",
+  asyncHandler(async (req: Request, res: Response) => {
+    const { sessionId } = req.params;
+
+    // x402 Payment Verification
+    const { paymentData } = extractPaymentInfo(
+      req.headers as Record<string, string | string[] | undefined>
+    );
+
+    const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
+    const paymentResult = await handleX402Payment(
+      paymentData,
+      resourceUrl,
+      "POST",
+      DEFAULT_PRICES.MCP_TOOL_CALL,
+    );
+
+    if (paymentResult.status !== 200) {
+      Object.entries(paymentResult.responseHeaders).forEach(([key, value]) => {
+        res.setHeader(key, value);
+      });
+      res.status(paymentResult.status).json(paymentResult.responseBody);
+      return;
+    }
+    console.log(`[x402] Payment verified for mcp/sessions/${sessionId}/execute`);
+
+    // Proxy to MCP server
+    try {
+      const response = await fetch(`${MCP_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}/execute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(req.body),
+      });
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } catch (error) {
+      res.status(503).json({
+        error: "MCP server unavailable",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  })
+);
+
+/**
+ * DELETE /mcp/sessions/:sessionId
+ * Proxy to MCP server - terminate session
+ */
+app.delete(
+  "/mcp/sessions/:sessionId",
+  asyncHandler(async (req: Request, res: Response) => {
+    const { sessionId } = req.params;
+    try {
+      const response = await fetch(`${MCP_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      res.status(response.status).json(data);
+    } catch (error) {
+      res.status(503).json({
+        error: "MCP server unavailable",
         message: error instanceof Error ? error.message : String(error),
       });
     }
@@ -371,7 +624,7 @@ app.get(
   asyncHandler(async (req: Request, res: Response) => {
     const { pluginId } = req.params;
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/goat/${encodeURIComponent(pluginId)}/tools`);
+      const response = await fetch(`${MCP_SERVER_URL}/goat/plugins/${encodeURIComponent(pluginId)}`);
       const data = await response.json();
       res.status(response.status).json(data);
     } catch (error) {

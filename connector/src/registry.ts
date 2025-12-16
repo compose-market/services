@@ -2,7 +2,7 @@
  * MCP Registry Module
  * 
  * Loads servers from:
- * - Glama dump (data/mcpServers.json)
+ * - Mcp dump (data/mcpServers.json)
  * - GOAT plugins (data/goatPlugins.json)
  * - ElizaOS plugins (data/elizaPlugins.json)
  * - Internal tools (internal.ts)
@@ -13,17 +13,17 @@ import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import express from "express";
-import { 
+import {
   getInternalServers,
-  type InternalMcpServer, 
+  type InternalMcpServer,
   isInternalServerAvailable,
-  getMissingEnvForServer 
+  getMissingEnvForServer
 } from "./internal.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/** Glama MCP server from the JSON dump */
-export interface GlamaMcpServer {
+/** Mcp MCP server from the JSON dump */
+export interface McpServer {
   id: string;
   name: string;
   namespace: string;
@@ -47,20 +47,20 @@ export interface RegistryData {
   sources: string[];
   updatedAt: string;
   count: number;
-  servers: GlamaMcpServer[];
+  servers: McpServer[];
 }
 
 /** Server origin types */
-export type ServerOrigin = "glama" | "internal" | "goat" | "eliza";
+export type ServerOrigin = "mcp" | "internal" | "goat" | "eliza";
 
 /** Record type: agent (autonomous AI agents) or plugin (tools/connectors) */
 export type RecordType = "agent" | "plugin";
 
 /** Unified server record for the registry */
 export interface UnifiedServerRecord {
-  /** Unique registry ID: "glama:{id}", "internal:{id}", "goat:{id}", or "eliza:{id}" */
+  /** Unique registry ID: "mcp:{id}", "internal:{id}", "goat:{id}", or "eliza:{id}" */
   registryId: string;
-  /** Primary origin: glama, internal, goat, or eliza */
+  /** Primary origin: mcp, internal, goat, or eliza */
   origin: ServerOrigin;
   /** Type classification: agent or plugin (for internal filtering) */
   type: RecordType;
@@ -105,7 +105,7 @@ export interface UnifiedServerRecord {
   /** Alternative registry IDs from other sources (for deduped entries) */
   alternateIds?: string[];
   /** Raw server data */
-  raw: GlamaMcpServer | InternalMcpServer;
+  raw: McpServer | InternalMcpServer;
 }
 
 // =============================================================================
@@ -117,7 +117,7 @@ const ORIGIN_PRIORITY: Record<ServerOrigin, number> = {
   internal: 1, // Highest: our own tools
   goat: 2,      // Second: has live execution
   eliza: 3,    // Third: rich metadata
-  glama: 4,    // Lowest: external MCP servers
+  mcp: 4,    // Lowest: external MCP servers
 };
 
 /**
@@ -126,10 +126,10 @@ const ORIGIN_PRIORITY: Record<ServerOrigin, number> = {
  */
 function normalizeToCanonicalKey(slug: string, origin: ServerOrigin): string {
   let key = slug.toLowerCase().trim();
-  
+
   // Strip common prefixes
   const prefixes = [
-    "plugin-", "client-", "adapter-", 
+    "plugin-", "client-", "adapter-",
     "mcp-", "mcp_", "-mcp",
     "goat-", "eliza-",
   ];
@@ -141,7 +141,7 @@ function normalizeToCanonicalKey(slug: string, origin: ServerOrigin): string {
       key = key.slice(0, -prefix.length + 1);
     }
   }
-  
+
   // Normalize common variations
   const normalizations: Record<string, string> = {
     "twitter": "twitter",
@@ -157,14 +157,14 @@ function normalizeToCanonicalKey(slug: string, origin: ServerOrigin): string {
     "uni-swap": "uniswap",
     "far-caster": "farcaster",
   };
-  
+
   if (normalizations[key]) {
     key = normalizations[key];
   }
-  
+
   // Remove trailing numbers/versions
   key = key.replace(/-v?\d+$/, "");
-  
+
   return key;
 }
 
@@ -174,7 +174,7 @@ function normalizeToCanonicalKey(slug: string, origin: ServerOrigin): string {
  */
 function deduplicateRecords(records: UnifiedServerRecord[]): UnifiedServerRecord[] {
   const byCanonicalKey = new Map<string, UnifiedServerRecord[]>();
-  
+
   // Group by canonical key
   for (const record of records) {
     const key = record.canonicalKey;
@@ -182,66 +182,66 @@ function deduplicateRecords(records: UnifiedServerRecord[]): UnifiedServerRecord
     existing.push(record);
     byCanonicalKey.set(key, existing);
   }
-  
+
   const deduplicated: UnifiedServerRecord[] = [];
   let mergedCount = 0;
-  
+
   for (const [key, group] of byCanonicalKey) {
     if (group.length === 1) {
       // No duplicates
       deduplicated.push(group[0]);
       continue;
     }
-    
+
     // Sort by priority (lowest number = highest priority)
     group.sort((a, b) => ORIGIN_PRIORITY[a.origin] - ORIGIN_PRIORITY[b.origin]);
-    
+
     const primary = group[0];
     const others = group.slice(1);
-    
+
     // Merge metadata from other sources
     const allSources = new Set<ServerOrigin>([primary.origin]);
     const allTags = new Set<string>(primary.tags);
     const allAttributes = new Set<string>(primary.attributes);
     const alternateIds: string[] = [];
-    
+
     for (const other of others) {
       allSources.add(other.origin);
       alternateIds.push(other.registryId);
       other.tags.forEach(t => allTags.add(t));
       other.attributes.forEach(a => allAttributes.add(a));
-      
+
       // Take longer description if available
       if (other.description.length > primary.description.length) {
         primary.description = other.description;
       }
-      
+
       // Take repo URL if primary doesn't have one
       if (!primary.repoUrl && other.repoUrl) {
         primary.repoUrl = other.repoUrl;
       }
-      
+
       // Take tools if primary doesn't have them
       if ((!primary.tools || primary.tools.length === 0) && other.tools && other.tools.length > 0) {
         primary.tools = other.tools;
         primary.toolCount = other.tools.length;
       }
     }
-    
+
     // Update primary with merged data
     primary.sources = Array.from(allSources);
     primary.tags = Array.from(allTags);
     primary.attributes = Array.from(allAttributes);
     primary.alternateIds = alternateIds;
-    
+
     deduplicated.push(primary);
     mergedCount += others.length;
   }
-  
+
   if (mergedCount > 0) {
     console.log(`[registry] Deduplicated ${mergedCount} duplicate entries across sources`);
   }
-  
+
   return deduplicated;
 }
 
@@ -270,18 +270,19 @@ interface PluginRegistryData {
   plugins: PluginRecord[];
 }
 
+
 /**
- * Load Glama dump from JSON file
+ * Load MCP servers from static JSON file
  */
-async function loadGlamaDump(): Promise<RegistryData | null> {
-  const filePath = path.resolve(__dirname, "../data/mcpServers.json");
+async function loadMcpServers(): Promise<RegistryData | null> {
+  const filePath = path.resolve(__dirname, "../../../data/mcpServers.json");
   try {
     const raw = await fs.readFile(filePath, "utf8");
     return JSON.parse(raw) as RegistryData;
   } catch (err: unknown) {
     const error = err as NodeJS.ErrnoException;
     if (error.code === "ENOENT") {
-      console.warn("[registry] mcpServers.json not found. Run sync script first.");
+      console.warn(`[registry] mcpServers.json not found at: ${filePath}`);
       return null;
     }
     throw err;
@@ -292,14 +293,14 @@ async function loadGlamaDump(): Promise<RegistryData | null> {
  * Load GOAT plugins from JSON file
  */
 async function loadGoatPlugins(): Promise<PluginRegistryData | null> {
-  const filePath = path.resolve(__dirname, "../data/goatPlugins.json");
+  const filePath = path.resolve(__dirname, "../../../data/goatPlugins.json");
   try {
     const raw = await fs.readFile(filePath, "utf8");
     return JSON.parse(raw) as PluginRegistryData;
   } catch (err: unknown) {
     const error = err as NodeJS.ErrnoException;
     if (error.code === "ENOENT") {
-      console.warn("[registry] goatPlugins.json not found. Run sync-plugins script first.");
+      console.warn(`[registry] goatPlugins.json not found at: ${filePath}. Run sync-plugins script first.`);
       return null;
     }
     throw err;
@@ -310,14 +311,14 @@ async function loadGoatPlugins(): Promise<PluginRegistryData | null> {
  * Load ElizaOS plugins from JSON file
  */
 async function loadElizaPlugins(): Promise<PluginRegistryData | null> {
-  const filePath = path.resolve(__dirname, "../data/elizaPlugins.json");
+  const filePath = path.resolve(__dirname, "../../../data/elizaPlugins.json");
   try {
     const raw = await fs.readFile(filePath, "utf8");
     return JSON.parse(raw) as PluginRegistryData;
   } catch (err: unknown) {
     const error = err as NodeJS.ErrnoException;
     if (error.code === "ENOENT") {
-      console.warn("[registry] elizaPlugins.json not found. Run sync-plugins script first.");
+      console.warn(`[registry] elizaPlugins.json not found at: ${filePath}. Run sync-plugins script first.`);
       return null;
     }
     throw err;
@@ -334,10 +335,10 @@ const EXECUTABLE_GOAT_PLUGINS = new Set([
  * Normalize all sources into unified records with deduplication
  */
 function normalizeRegistry(
-  glamaData: RegistryData | null,
+  mcpData: RegistryData | null,
   goatData: PluginRegistryData | null,
   elizaData: PluginRegistryData | null,
-  internal: InternalMcpServer[]
+  internalServers: InternalMcpServer[]
 ): UnifiedServerRecord[] {
   const records: UnifiedServerRecord[] = [];
 
@@ -346,7 +347,7 @@ function normalizeRegistry(
     for (const p of goatData.plugins) {
       const canonicalKey = normalizeToCanonicalKey(p.slug, "goat");
       const isExecutable = EXECUTABLE_GOAT_PLUGINS.has(canonicalKey);
-      
+
       records.push({
         registryId: `goat:${p.id}`,
         origin: "goat",
@@ -365,7 +366,7 @@ function normalizeRegistry(
         toolCount: 0,
         available: true,
         executable: isExecutable,
-        raw: p as unknown as GlamaMcpServer,
+        raw: p as unknown as McpServer,
       });
     }
   }
@@ -374,7 +375,7 @@ function normalizeRegistry(
   if (elizaData?.plugins) {
     for (const p of elizaData.plugins) {
       const canonicalKey = normalizeToCanonicalKey(p.slug, "eliza");
-      
+
       // Derive category from keywords
       let category = "utility";
       if (p.keywords.includes("social") || p.keywords.includes("chat")) category = "social";
@@ -398,16 +399,16 @@ function normalizeRegistry(
         toolCount: 0,
         available: true,
         executable: false, // ElizaOS execution coming in future
-        raw: p as unknown as GlamaMcpServer,
+        raw: p as unknown as McpServer,
       });
     }
   }
 
-  // Add internal servers (third priority, never deduplicated)
-  for (const s of internal) {
+  // Add internal servers last (but they get deduplicated as highest priority)
+  for (const s of internalServers) {
     const missing = getMissingEnvForServer(s);
     const canonicalKey = `internal:${s.slug}`; // Unique prefix to avoid dedup
-    
+
     records.push({
       registryId: `internal:${s.id}`,
       origin: "internal",
@@ -433,17 +434,17 @@ function normalizeRegistry(
     });
   }
 
-  // Add Glama servers (lowest priority)
-  if (glamaData?.servers) {
-    for (const s of glamaData.servers) {
+  // Add Mcp servers (lowest priority)
+  if (mcpData?.servers) {
+    for (const s of mcpData.servers) {
       const attrs = Array.isArray(s.attributes) ? s.attributes : [];
       const desc = typeof s.description === "string" ? s.description : "(no description)";
-      const canonicalKey = normalizeToCanonicalKey(s.slug, "glama");
-      
+      const canonicalKey = normalizeToCanonicalKey(s.slug, "mcp");
+
       // Extract category from attributes
       const categoryAttr = attrs.find((a) => a.startsWith("category:"));
       const category = categoryAttr ? categoryAttr.replace("category:", "") : undefined;
-      
+
       // Generate tags from name, namespace, and description
       const tags = generateTags(s.name, s.namespace, desc);
 
@@ -451,12 +452,12 @@ function normalizeRegistry(
       // All MCP servers are potentially executable via the MCP server
       // The MCP server handles dynamic spawning
       const isExecutable = true;
-      
+
       records.push({
-        registryId: `glama:${s.id}`,
-        origin: "glama",
+        registryId: `mcp:${s.id}`,
+        origin: "mcp",
         type: "plugin",
-        sources: ["glama"],  // All MCP servers are treated as glama origin
+        sources: ["mcp"],  // All MCP servers are treated as MCP origin
         canonicalKey,
         name: s.name || s.slug || s.id,
         namespace: s.namespace,
@@ -485,12 +486,12 @@ function normalizeRegistry(
  */
 function generateTags(name: string, namespace: string, description: string): string[] {
   const tags = new Set<string>();
-  
+
   // Add namespace
   if (namespace) {
     tags.add(namespace.toLowerCase());
   }
-  
+
   // Add words from name
   const nameWords = name
     .toLowerCase()
@@ -498,7 +499,7 @@ function generateTags(name: string, namespace: string, description: string): str
     .split(" ")
     .filter((w) => w.length > 2);
   nameWords.forEach((w) => tags.add(w));
-  
+
   // Add common keywords from description
   const descLower = description.toLowerCase();
   const keywords = [
@@ -525,8 +526,54 @@ function generateTags(name: string, namespace: string, description: string): str
       tags.add(kw);
     }
   }
-  
+
   return Array.from(tags);
+}
+
+/**
+ * Get spawn configuration for an MCP server
+ * Only returns config for pre-installed production servers
+ */
+export function getServerSpawnConfig(serverId: string): { command: string; args: string[]; env?: Record<string, string> } | null {
+  // Extract slug from ID (format: "source-namespace-slug" or "mcp:slug")
+  const slug = serverId.includes(':') ? serverId.split(':')[1] : serverId.split('-').pop() || serverId;
+
+  // Production-installed MCP servers (must be installed via npm install -g)
+  const configs: Record<string, { command: string; args: string[]; env?: Record<string, string> }> = {
+    // Test server (local)
+    'echo': {
+      command: 'node',
+      args: ['./backend/mcp/echo-server.mjs'],
+      env: {},
+    },
+    // Real packages from npm (use npx for on-demand install)
+    'sequential-thinking': {
+      command: 'npx',
+      args: ['-y', '@modelcontextprotocol/server-sequential-thinking'],
+      env: {}
+    },
+    'mcp-starter': {
+      command: 'npx',
+      args: ['-y', 'mcp-starter'],
+      env: {}
+    },
+    // SDK examples (if installed)
+    'everything': {
+      command: 'node',
+      args: ['/path/to/mcp/servers/src/everything/index.js'], // Update with actual path
+      env: {},
+    },
+  };
+
+  const config = configs[slug];
+
+  if (!config) {
+    console.warn(`[registry] No spawn configuration for server: ${serverId} (slug: ${slug})`);
+    console.warn(`[registry] Available: ${Object.keys(configs).join(', ')}`);
+    return null;
+  }
+
+  return config;
 }
 
 /**
@@ -534,19 +581,19 @@ function generateTags(name: string, namespace: string, description: string): str
  */
 export async function getRegistry(): Promise<UnifiedServerRecord[]> {
   if (!REGISTRY) {
-    const [glamaData, goatData, elizaData] = await Promise.all([
-      loadGlamaDump(),
+    const [mcpData, goatData, elizaData] = await Promise.all([
+      loadMcpServers(),
       loadGoatPlugins(),
       loadElizaPlugins(),
     ]);
     const internalServers = getInternalServers();
-    
-    REGISTRY = normalizeRegistry(glamaData, goatData, elizaData, internalServers);
+
+    REGISTRY = normalizeRegistry(mcpData, goatData, elizaData, internalServers);
     REGISTRY_LOADED_AT = new Date().toISOString();
-    
+
     console.log(
       `[registry] Loaded ${REGISTRY.length} servers ` +
-      `(${glamaData?.count || 0} glama + ${goatData?.count || 0} goat + ${elizaData?.count || 0} eliza + ${internalServers.length} internal)`
+      `(${mcpData?.count || 0} mcp + ${goatData?.count || 0} goat + ${elizaData?.count || 0} eliza + ${internalServers.length} internal)`
     );
   }
   return REGISTRY;
@@ -565,7 +612,7 @@ export async function reloadRegistry(): Promise<UnifiedServerRecord[]> {
  */
 export async function getRegistryMeta(): Promise<{
   totalServers: number;
-  glamaServers: number;
+  mcpServers: number;
   internalServers: number;
   goatServers: number;
   elizaServers: number;
@@ -574,13 +621,13 @@ export async function getRegistryMeta(): Promise<{
   loadedAt: string | null;
 }> {
   const registry = await getRegistry();
-  
+
   // Count servers with multiple sources (deduplicated)
   const deduplicatedCount = registry.filter(s => s.sources.length > 1).length;
-  
+
   return {
     totalServers: registry.length,
-    glamaServers: registry.filter((s) => s.origin === "glama").length,
+    mcpServers: registry.filter((s) => s.origin === "mcp").length,
     internalServers: registry.filter((s) => s.origin === "internal").length,
     goatServers: registry.filter((s) => s.origin === "goat").length,
     elizaServers: registry.filter((s) => s.origin === "eliza").length,
@@ -600,34 +647,34 @@ export async function searchRegistry(query: string): Promise<UnifiedServerRecord
   }
 
   const registry = await getRegistry();
-  
+
   // Score-based search
   const scored = registry.map((s) => {
     let score = 0;
-    
+
     // Exact name match (highest)
     if (s.name.toLowerCase() === q) score += 100;
     // Name contains query
     else if (s.name.toLowerCase().includes(q)) score += 50;
-    
+
     // Namespace match
     if (s.namespace.toLowerCase().includes(q)) score += 30;
-    
+
     // Slug match
     if (s.slug.toLowerCase().includes(q)) score += 25;
-    
+
     // Description match
     if (s.description.toLowerCase().includes(q)) score += 20;
-    
+
     // Tag match
     if (s.tags.some((t) => t.includes(q))) score += 15;
-    
+
     // Category match
     if (s.category?.toLowerCase().includes(q)) score += 10;
-    
+
     // Repo URL match
     if (s.repoUrl?.toLowerCase().includes(q)) score += 5;
-    
+
     return { server: s, score };
   });
 
@@ -707,46 +754,101 @@ export function createRegistryRouter(): express.Router {
   const router = express.Router();
 
   /**
-   * GET /registry/servers
-   * List all servers with optional filtering
+   * GET /registry
+   * Root route - return all servers (backward compatibility)
    */
-  router.get("/servers", async (req, res) => {
+  router.get("/", async (req, res) => {
     try {
       const { origin, category, available, type, limit, offset } = req.query;
-      
+
       let servers = await getRegistry();
-      
+
       // Filter by type (agent or plugin)
       if (typeof type === "string" && (type === "agent" || type === "plugin")) {
         servers = servers.filter((s) => s.type === type);
       }
-      
+
       // Filter by origin (supports comma-separated list)
       if (typeof origin === "string" && origin) {
-        const validOrigins: ServerOrigin[] = ["glama", "internal", "goat", "eliza"];
-        const origins = origin.split(",").filter((o): o is ServerOrigin => 
+        const validOrigins: ServerOrigin[] = ["mcp", "internal", "goat", "eliza"];
+        const origins = origin.split(",").filter((o): o is ServerOrigin =>
           validOrigins.includes(o as ServerOrigin)
         );
         if (origins.length > 0) {
           servers = servers.filter((s) => origins.includes(s.origin));
         }
       }
-      
+
       // Filter by category
       if (typeof category === "string" && category) {
         servers = servers.filter((s) => s.category === category);
       }
-      
+
+      // Filter by availability
+      if (available === "true") {
+        servers = servers.filter((s) => s.available);
+      } else if (available === "false") {
+        servers = servers.filter((s) => !s.available);
+      }
+
+      // Pagination
+      const limitNum = typeof limit === "string" ? parseInt(limit, 10) : undefined;
+      const offsetNum = typeof offset === "string" ? parseInt(offset, 10) : 0;
+
+      if (limitNum && limitNum > 0) {
+        servers = servers.slice(offsetNum, offsetNum + limitNum);
+      } else if (offsetNum > 0) {
+        servers = servers.slice(offsetNum);
+      }
+
+      res.json(servers);
+    } catch (err) {
+      console.error("[registry] / error:", err);
+      res.status(500).json({ error: "Internal error" });
+    }
+  });
+
+  /**
+   * GET /registry/servers
+   * List all servers with optional filtering
+   */
+  router.get("/servers", async (req, res) => {
+    try {
+      const { origin, category, available, type, limit, offset } = req.query;
+
+      let servers = await getRegistry();
+
+      // Filter by type (agent or plugin)
+      if (typeof type === "string" && (type === "agent" || type === "plugin")) {
+        servers = servers.filter((s) => s.type === type);
+      }
+
+      // Filter by origin (supports comma-separated list)
+      if (typeof origin === "string" && origin) {
+        const validOrigins: ServerOrigin[] = ["mcp", "internal", "goat", "eliza"];
+        const origins = origin.split(",").filter((o): o is ServerOrigin =>
+          validOrigins.includes(o as ServerOrigin)
+        );
+        if (origins.length > 0) {
+          servers = servers.filter((s) => origins.includes(s.origin));
+        }
+      }
+
+      // Filter by category
+      if (typeof category === "string" && category) {
+        servers = servers.filter((s) => s.category === category);
+      }
+
       // Filter by availability
       if (available === "true") {
         servers = servers.filter((s) => s.available);
       }
-      
+
       // Pagination
       const offsetNum = parseInt(offset as string, 10) || 0;
       const limitNum = Math.min(parseInt(limit as string, 10) || 50, 200);
       const paginated = servers.slice(offsetNum, offsetNum + limitNum);
-      
+
       res.json({
         total: servers.length,
         offset: offsetNum,
@@ -769,11 +871,11 @@ export function createRegistryRouter(): express.Router {
       res.status(400).json({ error: "Missing q parameter" });
       return;
     }
-    
+
     try {
       const results = await searchRegistry(q);
       const limit = Math.min(parseInt(req.query.limit as string, 10) || 50, 200);
-      
+
       res.json({
         query: q,
         total: results.length,
@@ -791,15 +893,15 @@ export function createRegistryRouter(): express.Router {
    */
   router.get("/servers/:registryId", async (req, res) => {
     try {
-      // Handle URL-encoded registry IDs (e.g., "glama%3Aabc123")
+      // Handle URL-encoded registry IDs (e.g., "mcp%3Aabc123")
       const registryId = decodeURIComponent(req.params.registryId);
       const server = await getServerByRegistryId(registryId);
-      
+
       if (!server) {
         res.status(404).json({ error: "Server not found" });
         return;
       }
-      
+
       res.json(server);
     } catch (err) {
       console.error("[registry] /servers/:id error:", err);
@@ -857,9 +959,9 @@ export function createRegistryRouter(): express.Router {
     try {
       await reloadRegistry();
       const meta = await getRegistryMeta();
-      res.json({ 
-        message: "Registry reloaded", 
-        ...meta 
+      res.json({
+        message: "Registry reloaded",
+        ...meta
       });
     } catch (err) {
       console.error("[registry] /reload error:", err);

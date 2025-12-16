@@ -2,7 +2,7 @@
  * Internal Tools Registry
  * 
  * Defines Compose Market's core internal integrations as MCP-like server entries
- * that appear in the same registry alongside external Glama servers.
+ * that appear in the same registry alongside external Mcp servers.
  * 
  * Note: GOAT and ElizaOS plugins are loaded from JSON files synced by scripts/sync-plugins.ts
  */

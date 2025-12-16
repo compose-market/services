@@ -57,7 +57,7 @@ export const paymentMethodSchema = z.object({
     .object({
       /** Payment scheme: "exact" or "upto" (ThirdWeb x402 schemes) */
       scheme: z.enum(["exact", "upto"]).default("upto"),
-      
+
       /** Optional facilitator URL for remote facilitator */
       facilitatorUrl: z.string().url().optional(),
 
@@ -241,7 +241,7 @@ const baseAgentCardSchema = z.object({
   /** Schema version for Compose internal versioning */
   schemaVersion: z.literal("1.0.0"),
 
-  /** Globally unique ID (e.g., "mcp://glama/notion") */
+  /** Globally unique ID (e.g., "mcp://mcp/notion") */
   id: z.string().min(1),
 
   /** Human-readable name */
@@ -539,9 +539,9 @@ export const CHAIN_CONFIG: Record<number, {
  * Uses VITE_USE_MAINNET for frontend, USE_MAINNET for backend
  */
 export function getActiveChainId(): number {
-  const useMainnet = 
-    typeof process !== "undefined" 
-      ? process.env.USE_MAINNET === "true" 
+  const useMainnet =
+    typeof process !== "undefined"
+      ? process.env.USE_MAINNET === "true"
       : false;
   return useMainnet ? CHAIN_IDS.avalanche : CHAIN_IDS.avalancheFuji;
 }
