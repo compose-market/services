@@ -30,7 +30,7 @@ export interface McpServer {
   slug: string;
   description?: string;
   attributes?: string[];
-  repository?: { url?: string | null };
+  repository?: { url?: string | null; source?: string };
   spdxLicense?: { name?: string; url?: string } | null;
   tools?: Array<{
     name: string;
@@ -39,6 +39,20 @@ export interface McpServer {
   }>;
   url?: string;
   environmentVariablesJsonSchema?: Record<string, unknown> | null;
+  // Transport and containerization metadata
+  transport?: "stdio" | "http";
+  image?: string;
+  remoteUrl?: string;
+  packages?: Array<{
+    registryType: string;
+    identifier: string;
+    version?: string;
+    transport?: { type: string };
+  }>;
+  remotes?: Array<{
+    type: string;
+    url: string;
+  }>;
   [key: string]: unknown;
 }
 
@@ -104,6 +118,13 @@ export interface UnifiedServerRecord {
   missingEnv?: string[];
   /** Alternative registry IDs from other sources (for deduped entries) */
   alternateIds?: string[];
+  // Transport and containerization support
+  /** Transport type: stdio (local npm/pypi), http (remote SSE/streamable), docker (containerized) */
+  transport?: "stdio" | "http" | "docker";
+  /** Docker image name (if containerized) */
+  image?: string;
+  /** Remote URL (if HTTP/SSE server) */
+  remoteUrl?: string;
   /** Raw server data */
   raw: McpServer | InternalMcpServer;
 }
@@ -472,6 +493,10 @@ function normalizeRegistry(
         tools: s.tools,
         available: true,
         executable: isExecutable, // Executable if has valid slug for on-demand connection
+        // Transport metadata from official MCP Registry
+        transport: s.transport,
+        image: s.image,
+        remoteUrl: s.remoteUrl,
         raw: s,
       });
     }
@@ -532,48 +557,80 @@ function generateTags(name: string, namespace: string, description: string): str
 
 /**
  * Get spawn configuration for an MCP server
- * Only returns config for pre-installed production servers
+ * Dynamically looks up server in registry and returns spawn config based on transport type
  */
-export function getServerSpawnConfig(serverId: string): { command: string; args: string[]; env?: Record<string, string> } | null {
-  // Extract slug from ID (format: "source-namespace-slug" or "mcp:slug")
-  const slug = serverId.includes(':') ? serverId.split(':')[1] : serverId.split('-').pop() || serverId;
+export async function getServerSpawnConfig(serverId: string): Promise<{
+  transport: "stdio" | "http" | "docker";
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  image?: string;
+  remoteUrl?: string;
+} | null> {
+  // Look up server in registry
+  const server = await getServerByRegistryId(serverId);
 
-  // Production-installed MCP servers (must be installed via npm install -g)
-  const configs: Record<string, { command: string; args: string[]; env?: Record<string, string> }> = {
-    // Test server (local)
-    'echo': {
-      command: 'node',
-      args: ['./backend/mcp/echo-server.mjs'],
-      env: {},
-    },
-    // Real packages from npm (use npx for on-demand install)
-    'sequential-thinking': {
-      command: 'npx',
-      args: ['-y', '@modelcontextprotocol/server-sequential-thinking'],
-      env: {}
-    },
-    'mcp-starter': {
-      command: 'npx',
-      args: ['-y', 'mcp-starter'],
-      env: {}
-    },
-    // SDK examples (if installed)
-    'everything': {
-      command: 'node',
-      args: ['/path/to/mcp/servers/src/everything/index.js'], // Update with actual path
-      env: {},
-    },
-  };
-
-  const config = configs[slug];
-
-  if (!config) {
-    console.warn(`[registry] No spawn configuration for server: ${serverId} (slug: ${slug})`);
-    console.warn(`[registry] Available: ${Object.keys(configs).join(', ')}`);
+  if (!server) {
+    console.warn(`[registry] Server not found: ${serverId}`);
     return null;
   }
 
-  return config;
+  // Return config based on transport type
+  if (server.remoteUrl) {
+    // HTTP/SSE remote server
+    return {
+      transport: "http",
+      remoteUrl: server.remoteUrl,
+    };
+  }
+
+  if (server.image) {
+    // Docker containerized server
+    return {
+      transport: "docker",
+      image: server.image,
+    };
+  }
+
+  // Fallback: stdio with npx
+  // Try to extract package name from server metadata
+  let packageName: string | undefined;
+
+  // Type guard: packages only exist on McpServer, not InternalMcpServer
+  if ("packages" in server.raw && server.raw.packages && server.raw.packages.length > 0) {
+    const npmPackage = server.raw.packages.find((p: any) => p.registryType === "npm" || p.registryType === "npmjs");
+    const pypiPackage = server.raw.packages.find((p: any) => p.registryType === "pypi");
+
+    if (npmPackage) {
+      packageName = npmPackage.identifier;
+    } else if (pypiPackage) {
+      // Python package - use uvx or pipx
+      return {
+        transport: "stdio",
+        command: "uvx",
+        args: ["--from", pypiPackage.identifier, pypiPackage.identifier.split("/").pop() || pypiPackage.identifier],
+        env: {},
+      };
+    }
+  }
+
+  // If no package metadata, try to infer from namespace/slug
+  if (!packageName) {
+    // Common patterns: @modelcontextprotocol/server-*, @namespace/server-*
+    if (server.namespace === "modelcontextprotocol") {
+      packageName = `@modelcontextprotocol/server-${server.slug}`;
+    } else {
+      // Generic pattern
+      packageName = `@${server.namespace}/server-${server.slug}`;
+    }
+  }
+
+  return {
+    transport: "stdio",
+    command: "npx",
+    args: ["-y", packageName],
+    env: {},
+  };
 }
 
 /**
