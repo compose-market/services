@@ -405,6 +405,18 @@ async function fetchMcpSoServers(): Promise<McpServer[]> {
           const npmConfigMatch = serverPageHtml.match(/"command":\s*"npx",\s*"args":\s*\[\s*"([^"]+)"/);
           const npmPackage = npmConfigMatch ? npmConfigMatch[1] : undefined;
 
+          // Extract transport type
+          let transport: "stdio" | "http" | undefined;
+          if (serverPageHtml.includes('"stdio"') || serverPageHtml.includes('stdio')) {
+            transport = "stdio";
+          } else if (serverPageHtml.includes('"http"') || serverPageHtml.includes('"sse"')) {
+            transport = "http";
+          }
+
+          // Extract remote URL
+          const remoteUrlMatch = serverPageHtml.match(/https?:\/\/[^"\s<>]+\.(?:vercel\.app|railway\.app|render\.com|fly\.io|replit\.app)[^"\s<>]*/);
+          const remoteUrl = remoteUrlMatch ? remoteUrlMatch[0] : undefined;
+
           // Extract description
           const descMatch = serverPageHtml.match(/<meta\s+(?:name|property)=["'](?:og:)?description["']\s+content=["']([^"']+)["']/i);
           const description = descMatch ? descMatch[1] : "";
@@ -417,8 +429,10 @@ async function fetchMcpSoServers(): Promise<McpServer[]> {
             namespace,
             slug,
             description: description || `MCP server from mcp.so: ${slug}`,
-            attributes: [],
+            attributes: remoteUrl ? ["hosting:remote-capable"] : [],
             repository: repoUrl ? { url: repoUrl } : undefined,
+            transport,
+            remoteUrl,
             packages: npmPackage ? [{
               registryType: "npm",
               identifier: npmPackage,
@@ -521,8 +535,24 @@ async function fetchPulseMcpServers(): Promise<McpServer[]> {
 
           const id = `pulsemcp-${namespace}-${slug}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 
+          // Extract NPM package if present
+          const npmMatch = serverPageHtml.match(/npx\s+([^"\s<]+)|npm\s+install\s+([^"\s<]+)/i);
+          const npmPackage = npmMatch ? (npmMatch[1] || npmMatch[2]) : undefined;
+
+          // Extract transport type (stdio or http)
+          let transport: "stdio" | "http" | undefined;
+          if (serverPageHtml.includes('stdio')) {
+            transport = "stdio";
+          } else if (serverPageHtml.includes('SSE') || serverPageHtml.includes('Server-Sent Events') || serverPageHtml.includes('HTTP')) {
+            transport = "http";
+          }
+
+          // Extract remote URL if available
+          const remoteUrlMatch = serverPageHtml.match(/https?:\/\/[^"\s<>]+\.(?:vercel\.app|railway\.app|render\.com|fly\.io|replit\.app)[^"\s<>]*/);
+          const remoteUrl = remoteUrlMatch ? remoteUrlMatch[0] : undefined;
+
           // Check if it's remote-capable
-          const isRemote = serverPageHtml.includes('Remote Available') || serverPageHtml.includes('remote');
+          const isRemote = serverPageHtml.includes('Remote Available') || serverPageHtml.includes('remote') || !!remoteUrl;
 
           const server: McpServer = {
             id,
@@ -532,6 +562,12 @@ async function fetchPulseMcpServers(): Promise<McpServer[]> {
             description: description || `MCP server from PulseMCP: ${title}`,
             attributes: isRemote ? ["hosting:remote-capable"] : [],
             repository: repoUrl ? { url: repoUrl } : undefined,
+            transport,
+            remoteUrl,
+            packages: npmPackage ? [{
+              registryType: "npm",
+              identifier: npmPackage,
+            }] : undefined,
             source: "mcp-registry",
           };
 
@@ -565,41 +601,62 @@ async function fetchPulseMcpServers(): Promise<McpServer[]> {
 // Deduplication & Merging
 // =============================================================================
 
+/**
+ * Normalize a server name by stripping common prefixes:
+ * - Author/org names (e.g., "modelcontextprotocol/")
+ * - "mcp-" prefix
+ * - "server-" prefix
+ * - "-mcp" suffix
+ * - "-server" suffix
+ * 
+ * Examples:
+ * - "modelcontextprotocol/filesystem" -> "filesystem"
+ * - "mcp-server-brave" -> "brave"
+ * - "awesome-mcp-servers/github" -> "github"
+ * - "user/mcp-gitlab-server" -> "gitlab"
+ */
+function normalizeServerName(name: string, slug?: string): string {
+  let normalized = (name || slug || "").toLowerCase();
+
+  // Remove author/org prefix (everything before /)
+  if (normalized.includes('/')) {
+    normalized = normalized.split('/').pop() || normalized;
+  }
+
+  // Remove common prefixes and suffixes
+  normalized = normalized
+    .replace(/^mcp[-_]?/i, '')           // Remove "mcp-" or "mcp_" prefix
+    .replace(/[-_]?mcp$/i, '')           // Remove "-mcp" or "_mcp" suffix
+    .replace(/^server[-_]?/i, '')        // Remove "server-" prefix
+    .replace(/[-_]?server$/i, '')        // Remove "-server" suffix
+    .replace(/^@[^/]+\//, '')             // Remove npm scope
+    .replace(/[^a-z0-9]+/g, '-')         // Normalize separators
+    .replace(/^-+|-+$/g, '');            // Trim dashes
+
+  return normalized || name.toLowerCase();
+}
+
 function deduplicateServers(servers: McpServer[]): McpServer[] {
-  const byRepo = new Map<string, McpServer>();
+  const byName = new Map<string, McpServer>();
 
   for (const server of servers) {
-    const repoUrl = server.repository?.url?.toLowerCase().replace(/\.git$/, "").replace(/\/$/, "");
-
-    if (!repoUrl) {
-      // No repo URL - use ID as key
-      const key = `id:${server.source}:${server.id}`;
-      if (!byRepo.has(key)) {
-        byRepo.set(key, server);
-      }
-      continue;
-    }
-
-    const existing = byRepo.get(repoUrl);
+    const normalizedName = normalizeServerName(server.name, server.slug);
+    const existing = byName.get(normalizedName);
 
     if (!existing) {
-      byRepo.set(repoUrl, server);
+      // First occurrence - add it
+      byName.set(normalizedName, server);
     } else {
-      // Prefer MCP Registry source (has more metadata)
+      // Duplicate detected - prefer MCP Registry (has most complete data)
       if (server.source === "mcp-registry" && existing.source !== "mcp-registry") {
-        // MCP Registry has transport info, packages, remotes - overwrite
-        byRepo.set(repoUrl, server);
+        // MCP Registry has transport, packages, remoteUrl - use it
+        byName.set(normalizedName, server);
       }
-      // Merge attributes if both exist
-      else if (existing.source === "mcp-registry" && server.source !== "mcp-registry") {
-        // Keep MCP Registry data, but add any attributes from awesome-mcp-servers
-        const mergedAttrs = new Set([...(existing.attributes || []), ...(server.attributes || [])]);
-        existing.attributes = Array.from(mergedAttrs);
-      }
+      // Otherwise keep the first occurrence (no merging)
     }
   }
 
-  return Array.from(byRepo.values());
+  return Array.from(byName.values());
 }
 
 // =============================================================================
