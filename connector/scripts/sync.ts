@@ -328,137 +328,125 @@ async function fetchMcpSoServers(): Promise<McpServer[]> {
   console.log("\n[3/5] Fetching from mcp.so...");
 
   const servers: McpServer[] = [];
-  const sitemapUrls = [
-    "https://mcp.so/sitemap_projects_1.xml",
-    "https://mcp.so/sitemap_projects_2.xml",
-    "https://mcp.so/sitemap_projects_3.xml",
-    "https://mcp.so/sitemap_projects_4.xml",
-    "https://mcp.so/sitemap_projects_5.xml",
-    "https://mcp.so/sitemap_projects_6.xml",
-    "https://mcp.so/sitemap_projects_7.xml",
-    "https://mcp.so/sitemap_projects_8.xml",
-    "https://mcp.so/sitemap_projects_9.xml",
-    "https://mcp.so/sitemap_projects_10.xml",
-    "https://mcp.so/sitemap_projects_11.xml",
-    "https://mcp.so/sitemap_projects_12.xml",
-    "https://mcp.so/sitemap_projects_13.xml",
-    "https://mcp.so/sitemap_projects_14.xml",
-    "https://mcp.so/sitemap_projects_15.xml",
-    "https://mcp.so/sitemap_projects_16.xml",
-    "https://mcp.so/sitemap_projects_17.xml",
-    "https://mcp.so/sitemap_projects_18.xml",
-    "https://mcp.so/sitemap_projects_19.xml",
-    "https://mcp.so/sitemap_projects_20.xml",
-    "https://mcp.so/sitemap_projects_21.xml",
-    "https://mcp.so/sitemap_projects_22.xml",
-    "https://mcp.so/sitemap_projects_23.xml",
-    "https://mcp.so/sitemap_projects_24.xml",
-    "https://mcp.so/sitemap_projects_25.xml",
-    "https://mcp.so/sitemap_projects_26.xml",
-    "https://mcp.so/sitemap_projects_27.xml",
-    "https://mcp.so/sitemap_projects_28.xml",
-    "https://mcp.so/sitemap_projects_29.xml",
-    "https://mcp.so/sitemap_projects_30.xml"
-  ];
 
   try {
-    // Fetch all sitemap XMLs
-    for (const sitemapUrl of sitemapUrls) {
+    // Dynamically fetch all sitemap XMLs (try 1-250, stop on 404)
+    let sitemapIndex = 1;
+    let consecutiveFailures = 0;
+    const maxConsecutiveFailures = 3; // Stop after 3 consecutive 404s
+
+    while (consecutiveFailures < maxConsecutiveFailures && sitemapIndex <= 250) {
+      const sitemapUrl = `https://mcp.so/sitemap_projects_${sitemapIndex}.xml`;
       console.log(`  Fetching ${sitemapUrl}...`);
 
-      const res = await fetch(sitemapUrl);
-      if (!res.ok) {
-        console.warn(`  Warning: Could not fetch ${sitemapUrl}: ${res.status}`);
-        continue;
-      }
-
-      const xml = await res.text();
-
-      // Extract all <loc> URLs pointing to /server/
-      const urlMatches = xml.matchAll(/<loc>(https:\/\/mcp\.so\/server\/([^<]+))<\/loc>/g);
-
-      for (const match of urlMatches) {
-        const [, fullUrl, path] = match;
-        // path format: "server-name/namespace"
-        const parts = path.split('/');
-        if (parts.length < 2) continue;
-
-        const slug = parts[0];
-        const namespace = parts[1];
-
-        // Rate limiting - only for individual page fetches
-        await new Promise(resolve => setTimeout(resolve, MCP_SO_REQUEST_DELAY));
-
-        try {
-          const serverPageRes = await fetch(fullUrl);
-          if (!serverPageRes.ok) continue;
-
-          const serverPageHtml = await serverPageRes.text();
-
-          // Extract GitHub repository URL
-          const githubMatch = serverPageHtml.match(/github\.com\/([^"'\s<>]+)/);
-          const repoUrl = githubMatch ? `https://github.com/${githubMatch[1].replace(/\/$/, '')}` : undefined;
-
-          // Extract NPM package from config
-          const npmConfigMatch = serverPageHtml.match(/"command":\s*"npx",\s*"args":\s*\[\s*"([^"]+)"/);
-          const npmPackage = npmConfigMatch ? npmConfigMatch[1] : undefined;
-
-          // Extract transport type
-          let transport: "stdio" | "http" | undefined;
-          if (serverPageHtml.includes('"stdio"') || serverPageHtml.includes('stdio')) {
-            transport = "stdio";
-          } else if (serverPageHtml.includes('"http"') || serverPageHtml.includes('"sse"')) {
-            transport = "http";
+      try {
+        const res = await fetch(sitemapUrl);
+        if (!res.ok) {
+          if (res.status === 404) {
+            consecutiveFailures++;
+            sitemapIndex++;
+            continue;
           }
-
-          // Extract remote URL
-          const remoteUrlMatch = serverPageHtml.match(/https?:\/\/[^"\s<>]+\.(?:vercel\.app|railway\.app|render\.com|fly\.io|replit\.app)[^"\s<>]*/);
-          const remoteUrl = remoteUrlMatch ? remoteUrlMatch[0] : undefined;
-
-          // Extract description
-          const descMatch = serverPageHtml.match(/<meta\s+(?:name|property)=["'](?:og:)?description["']\s+content=["']([^"']+)["']/i);
-          const description = descMatch ? descMatch[1] : "";
-
-          const id = `mcpso-${namespace}-${slug}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
-
-          const server: McpServer = {
-            id,
-            name: `${namespace}/${slug}`,
-            namespace,
-            slug,
-            description: description || `MCP server from mcp.so: ${slug}`,
-            attributes: remoteUrl ? ["hosting:remote-capable"] : [],
-            repository: repoUrl ? { url: repoUrl } : undefined,
-            transport,
-            remoteUrl,
-            packages: npmPackage ? [{
-              registryType: "npm",
-              identifier: npmPackage,
-            }] : undefined,
-            source: "mcp-so",
-          };
-
-          servers.push(server);
-
-          if (servers.length % 100 === 0) {
-            console.log(`  Fetched ${servers.length} servers from mcp.so`);
-          }
-        } catch (error) {
-          console.warn(`  Warning: Failed to fetch ${namespace}/${slug}: ${error}`);
+          console.warn(`  Warning: Failed to fetch ${sitemapUrl} (${res.status})`);
+          sitemapIndex++;
+          continue;
         }
+
+        // Reset consecutive failures on success
+        consecutiveFailures = 0;
+
+        const xml = await res.text();
+        const urls = xml.matchAll(/<loc>(https:\/\/mcp\.so\/([^<]+))<\/loc>/g);
+
+        for (const match of urls) {
+          const fullUrl = match[1];
+          const parts = fullUrl.replace('https://mcp.so/', '').split('/');
+
+          // URL format: mcp.so/@namespace/slug or mcp.so/slug
+          const namespace = parts.length > 1 && parts[0].startsWith('@') ? parts[0].substring(1) : parts[0];
+          const slug = parts.length > 1 ? parts[1] : parts[0];
+
+          // Rate limiting - only for individual page fetches
+          await new Promise(resolve => setTimeout(resolve, MCP_SO_REQUEST_DELAY));
+
+          try {
+            const serverPageRes = await fetch(fullUrl);
+            if (!serverPageRes.ok) continue;
+
+            const serverPageHtml = await serverPageRes.text();
+
+            // Extract GitHub repository URL (look for owner/repo pattern, exclude issues/wiki/etc)
+            const githubMatch = serverPageHtml.match(/github\.com\/([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_.\/-]+?)(?:\.git|\/|"|'|\s)/);
+            let repoUrl: string | undefined;
+
+            if (githubMatch && githubMatch[1] && githubMatch[2]) {
+              const owner = githubMatch[1];
+              const path = githubMatch[2];
+              // Extract just the repo name (first segment after owner)
+              const repoName = path.split('/')[0];
+              // Filter out non-repo paths
+              if (!['issues', 'wiki', 'pulls', 'discussions', 'actions', 'projects', 'security', 'insights', 'settings', 'blob', 'tree'].includes(repoName.toLowerCase())) {
+                repoUrl = `https://github.com/${owner}/${repoName}`;
+              }
+            }
+
+            // Extract NPM package from config
+            const npmConfigMatch = serverPageHtml.match(/"command":\s*"npx",\s*"args":\s*\[\s*"([^"]+)"/);
+            const npmPackage = npmConfigMatch ? npmConfigMatch[1] : undefined;
+
+            // Extract transport type
+            let transport: "stdio" | "http" | undefined;
+            if (serverPageHtml.includes('"stdio"') || serverPageHtml.includes('stdio')) {
+              transport = "stdio";
+            } else if (serverPageHtml.includes('"http"') || serverPageHtml.includes('"sse"')) {
+              transport = "http";
+            }
+
+            const id = `mcpso-${namespace}-${slug}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+
+            const server: McpServer = {
+              id,
+              name: `${namespace}/${slug}`,
+              namespace,
+              slug,
+              description: `MCP server from mcp.so: ${slug}`,
+              repository: repoUrl ? { url: repoUrl } : undefined,
+              packages: npmPackage ? [{ registryType: "npm", identifier: npmPackage }] : undefined,
+              transport,
+              source: "mcp-so",
+            };
+
+            servers.push(server);
+
+            if (servers.length % 100 === 0) {
+              console.log(`  Fetched ${servers.length} servers from mcp.so`);
+            }
+          } catch (error) {
+            // Skip individual server errors
+            console.warn(`  Warning: Failed to process ${fullUrl}: ${error}`);
+          }
+        }
+
+        sitemapIndex++;
+      } catch (error) {
+        console.warn(`  Error fetching sitemap ${sitemapIndex}: ${error}`);
+        consecutiveFailures++;
+        sitemapIndex++;
       }
     }
+
+    console.log(`  Total from mcp.so: ${servers.length}`);
   } catch (error) {
-    console.warn(`  Warning: Failed to scrape mcp.so: ${error}`);
+    console.error(`  Error fetching mcp.so servers: ${error}`);
   }
 
-  console.log(`  Total from mcp.so: ${servers.length}`);
   return servers;
 }
 
 // =============================================================================
 // PulseMCP Scraping
 // =============================================================================
+
 
 interface PulseMCPPageData {
   servers: Array<{
