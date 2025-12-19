@@ -23,7 +23,8 @@ const MCP_SO_BASE = "https://mcp.so";
 const PULSEMCP_BASE = "https://www.pulsemcp.com";
 const OUTPUT_PATH = path.resolve(__dirname, "../data/mcpServers.json");
 const PAGE_SIZE = 100;
-const REQUEST_DELAY = 1000; // 1 second between requests to avoid rate limiting
+const REQUEST_DELAY = 100; // 100ms between requests (faster fetching while still respectful)
+const MCP_SO_REQUEST_DELAY = 200; // Slightly higher for mcp.so scraping
 
 // =============================================================================
 // Types
@@ -64,7 +65,7 @@ export interface McpServer {
     type: string;
     url: string;
   }>;
-  source: "mcp-registry" | "awesome-mcp-servers";
+  source: "mcp-registry" | "glama" | "mcp-so" | "pulsemcp";
   [key: string]: unknown;
 }
 
@@ -232,120 +233,91 @@ async function fetchMcpRegistryServers(): Promise<McpServer[]> {
 }
 
 // =============================================================================
-// Awesome MCP Servers README Parsing
+// Glama.ai MCP Server Sitemap (replaces limited API)
 // =============================================================================
 
-interface ParsedEntry {
-  name: string;
-  description: string;
-  repoUrl: string;
-  category?: string;
-}
+async function fetchGlamaServers(): Promise<McpServer[]> {
+  console.log("\n[2/5] Fetching from Glama.ai sitemap...");
 
-function parseAwesomeReadme(content: string): ParsedEntry[] {
-  const entries: ParsedEntry[] = [];
-  const lines = content.split("\n");
+  const allServers: McpServer[] = [];
 
-  let currentCategory = "";
+  try {
+    // Fetch the sitemap XML
+    const sitemapUrl = "https://glama.ai/sitemaps/mcp-servers.xml";
+    const res = await fetch(sitemapUrl);
 
-  // Regex to match markdown links: - [Name](url) - Description
-  // or: - [Name](url) Description
-  const entryRegex = /^\s*-\s*\[([^\]]+)\]\(([^)]+)\)\s*[-–]?\s*(.*)$/;
-
-  for (const line of lines) {
-    // Track category headers (## Category or ### Category)
-    const headerMatch = line.match(/^#{2,4}\s+(.+)$/);
-    if (headerMatch) {
-      currentCategory = headerMatch[1].trim();
-      continue;
+    if (!res.ok) {
+      throw new Error(`Glama sitemap error: ${res.status} ${res.statusText}`);
     }
 
-    // Parse list entries
-    const match = line.match(entryRegex);
-    if (match) {
-      const [, name, url, description] = match;
+    const xml = await res.text();
 
-      // Only include GitHub repositories (MCP servers)
-      if (url.includes("github.com") && !url.includes("/issues") && !url.includes("/discussions")) {
-        entries.push({
-          name: name.trim(),
-          description: description.trim() || name.trim(),
-          repoUrl: url.trim(),
-          category: currentCategory || undefined,
-        });
-      }
+    // Extract all server URLs from sitemap
+    const urlMatches = xml.matchAll(/<loc>(https:\/\/glama\.ai\/mcp\/servers\/([^<]+))<\/loc>/g);
+    const serverUrls: string[] = [];
+
+    for (const match of urlMatches) {
+      serverUrls.push(match[1]);
     }
-  }
 
-  return entries;
-}
+    console.log(`  Found ${serverUrls.length} server URLs in sitemap`);
 
-function extractGitHubInfo(url: string): { namespace: string; slug: string } {
-  // Parse: https://github.com/owner/repo or https://github.com/owner/repo/tree/...
-  const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
-  if (match) {
-    return { namespace: match[1], slug: match[2].replace(/\.git$/, "") };
-  }
-  return { namespace: "unknown", slug: "unknown" };
-}
-
-async function fetchAwesomeServers(): Promise<McpServer[]> {
-  console.log("\n[2/2] Fetching from awesome-mcp-servers...");
-
-  const res = await fetch(AWESOME_MCP_README);
-  if (!res.ok) {
-    console.warn(`  Warning: Could not fetch README: ${res.status}`);
-    return [];
-  }
-
-  const content = await res.text();
-  const entries = parseAwesomeReadme(content);
-
-  console.log(`  Parsed ${entries.length} GitHub entries from README`);
-
-  const servers: McpServer[] = [];
-
-  for (const entry of entries) {
-    const { namespace, slug } = extractGitHubInfo(entry.repoUrl);
-    const id = `awesome-${namespace}-${slug}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
-
-    // Map category to attributes
-    const attributes: string[] = [];
-    if (entry.category) {
-      const cat = entry.category.toLowerCase();
-      if (cat.includes("official") || cat.includes("reference")) {
-        attributes.push("category:official");
+    // Fetch each server's page to extract metadata
+    let processed = 0;
+    for (const serverUrl of serverUrls) {
+      // Rate limiting
+      if (processed > 0 && processed % 10 === 0) {
+        await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
       }
-      if (cat.includes("browser") || cat.includes("web")) {
-        attributes.push("category:browser");
-      }
-      if (cat.includes("database") || cat.includes("data")) {
-        attributes.push("category:data");
-      }
-      if (cat.includes("file") || cat.includes("storage")) {
-        attributes.push("category:storage");
-      }
-      if (cat.includes("code") || cat.includes("dev")) {
-        attributes.push("category:developer-tools");
-      }
-      if (cat.includes("ai") || cat.includes("llm") || cat.includes("ml")) {
-        attributes.push("category:ai");
+
+      try {
+        // Extract namespace and slug from URL
+        // Format: https://glama.ai/mcp/servers/@namespace/slug or /namespace/slug
+        const urlParts = serverUrl.replace('https://glama.ai/mcp/servers/', '').split('/');
+        let namespace = "unknown";
+        let slug = "unknown";
+
+        if (urlParts.length === 2) {
+          namespace = urlParts[0].replace('@', '');
+          slug = urlParts[1];
+        } else if (urlParts.length === 1) {
+          // Some servers might not have namespace
+          slug = urlParts[0].replace('@', '');
+        }
+
+        // For now, just create server entries from URL structure
+        // We could optionally fetch each page for full metadata, but that would be slow
+        const id = `glama-${namespace}-${slug}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+
+        const server: McpServer = {
+          id,
+          name: `${namespace}/${slug}`,
+          namespace,
+          slug,
+          description: `MCP server from Glama.ai: ${slug}`,
+          attributes: [],
+          source: "glama",
+        };
+
+        allServers.push(server);
+        processed++;
+
+        if (processed % 1000 === 0) {
+          process.stdout.write(`\r  Processed ${processed}/${serverUrls.length} servers`);
+        }
+      } catch (error) {
+        // Skip failed servers
+        console.warn(`\n  Warning: Failed to process ${serverUrl}`);
       }
     }
 
-    servers.push({
-      id,
-      name: entry.name,
-      namespace,
-      slug,
-      description: entry.description,
-      attributes,
-      repository: { url: entry.repoUrl },
-      source: "awesome-mcp-servers",
-    });
+    console.log(`\r  Processed ${processed}/${serverUrls.length} servers - Complete!`);
+  } catch (error) {
+    console.error(`  Error fetching Glama sitemap: ${error}`);
   }
 
-  return servers;
+  console.log(`  Total from Glama: ${allServers.length}`);
+  return allServers;
 }
 
 // =============================================================================
@@ -361,6 +333,32 @@ async function fetchMcpSoServers(): Promise<McpServer[]> {
     "https://mcp.so/sitemap_projects_2.xml",
     "https://mcp.so/sitemap_projects_3.xml",
     "https://mcp.so/sitemap_projects_4.xml",
+    "https://mcp.so/sitemap_projects_5.xml",
+    "https://mcp.so/sitemap_projects_6.xml",
+    "https://mcp.so/sitemap_projects_7.xml",
+    "https://mcp.so/sitemap_projects_8.xml",
+    "https://mcp.so/sitemap_projects_9.xml",
+    "https://mcp.so/sitemap_projects_10.xml",
+    "https://mcp.so/sitemap_projects_11.xml",
+    "https://mcp.so/sitemap_projects_12.xml",
+    "https://mcp.so/sitemap_projects_13.xml",
+    "https://mcp.so/sitemap_projects_14.xml",
+    "https://mcp.so/sitemap_projects_15.xml",
+    "https://mcp.so/sitemap_projects_16.xml",
+    "https://mcp.so/sitemap_projects_17.xml",
+    "https://mcp.so/sitemap_projects_18.xml",
+    "https://mcp.so/sitemap_projects_19.xml",
+    "https://mcp.so/sitemap_projects_20.xml",
+    "https://mcp.so/sitemap_projects_21.xml",
+    "https://mcp.so/sitemap_projects_22.xml",
+    "https://mcp.so/sitemap_projects_23.xml",
+    "https://mcp.so/sitemap_projects_24.xml",
+    "https://mcp.so/sitemap_projects_25.xml",
+    "https://mcp.so/sitemap_projects_26.xml",
+    "https://mcp.so/sitemap_projects_27.xml",
+    "https://mcp.so/sitemap_projects_28.xml",
+    "https://mcp.so/sitemap_projects_29.xml",
+    "https://mcp.so/sitemap_projects_30.xml"
   ];
 
   try {
@@ -389,7 +387,7 @@ async function fetchMcpSoServers(): Promise<McpServer[]> {
         const namespace = parts[1];
 
         // Rate limiting - only for individual page fetches
-        await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
+        await new Promise(resolve => setTimeout(resolve, MCP_SO_REQUEST_DELAY));
 
         try {
           const serverPageRes = await fetch(fullUrl);
@@ -437,7 +435,7 @@ async function fetchMcpSoServers(): Promise<McpServer[]> {
               registryType: "npm",
               identifier: npmPackage,
             }] : undefined,
-            source: "mcp-registry",
+            source: "mcp-so",
           };
 
           servers.push(server);
@@ -462,139 +460,163 @@ async function fetchMcpSoServers(): Promise<McpServer[]> {
 // PulseMCP Scraping
 // =============================================================================
 
-async function fetchPulseMcpServers(): Promise<McpServer[]> {
-  console.log("\n[4/5] Fetching from pulsemcp.com...");
+interface PulseMCPPageData {
+  servers: Array<{
+    slug: string;
+    title: string;
+    description: string;
+    namespace: string;
+    repoUrl?: string;
+    npmPackage?: string;
+    transport?: "stdio" | "http";
+    remoteUrl?: string;
+    isRemote: boolean;
+  }>;
+  hasNextPage: boolean;
+}
 
-  const servers: McpServer[] = [];
+async function fetchPulseMCPPage(page: number): Promise<PulseMCPPageData> {
+  const res = await fetch(`${PULSEMCP_BASE}/servers?page=${page}`);
 
-  try {
-    let page = 1;
-    let hasMore = true;
+  if (!res.ok) {
+    throw new Error(`PulseMCP page ${page} error: ${res.status} ${res.statusText}`);
+  }
 
-    while (hasMore) {
-      // Rate limiting
-      await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
+  const html = await res.text();
 
-      const res = await fetch(`${PULSEMCP_BASE}/servers?page=${page}`);
-      if (!res.ok) {
-        console.warn(`  Warning: Could not fetch PulseMCP page ${page}: ${res.status}`);
-        break;
-      }
+  const servers: PulseMCPPageData['servers'] = [];
 
-      const html = await res.text();
+  // Extract server links from the page
+  const serverLinkRegex = /href="\/servers\/([^"]+)"/g;
+  const matches = [...html.matchAll(serverLinkRegex)];
 
-      // Extract server links from the page
-      // Pattern: /servers/<provider-slug>
-      const serverLinkRegex = /href="\/servers\/([^"]+)"/g;
-      const matches = [...html.matchAll(serverLinkRegex)];
+  for (const match of matches) {
+    const [, serverSlug] = match;
 
-      if (matches.length === 0) {
-        hasMore = false;
-        break;
-      }
+    // Skip navigational links
+    if (serverSlug.includes('?') || serverSlug === 'servers') continue;
 
-      console.log(`  Processing page ${page}: ${matches.length} servers`);
+    // Rate limiting for individual server pages
+    await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
 
-      for (const match of matches) {
-        const [, serverSlug] = match;
+    try {
+      const serverPageRes = await fetch(`${PULSEMCP_BASE}/servers/${serverSlug}`);
+      if (!serverPageRes.ok) continue;
 
-        // Skip navigational links
-        if (serverSlug.includes('?') || serverSlug === 'servers') continue;
+      const serverPageHtml = await serverPageRes.text();
 
-        // Rate limiting for individual server pages
-        await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
+      // Extract GitHub repository
+      const githubMatch = serverPageHtml.match(/github\.com\/([^"'\s<>)]+)/);
+      const repoUrl = githubMatch ? `https://github.com/${githubMatch[1].replace(/\/$/, '')}` : undefined;
 
-        try {
-          const serverPageRes = await fetch(`${PULSEMCP_BASE}/servers/${serverSlug}`);
-          if (!serverPageRes.ok) continue;
+      // Extract server name and description from title/meta
+      const titleMatch = serverPageHtml.match(/<title>([^<]+)<\/title>/);
+      const title = titleMatch ? titleMatch[1].replace(' | PulseMCP', '').trim() : serverSlug;
 
-          const serverPageHtml = await serverPageRes.text();
+      const descMatch = serverPageHtml.match(/<meta\s+(?:name|property)=["'](?:og:)?description["']\s+content=["']([^"']+)["']/i);
+      const description = descMatch ? descMatch[1] : "";
 
-          // Extract GitHub repository
-          const githubMatch = serverPageHtml.match(/github\.com\/([^"'\s<>)]+)/);
-          const repoUrl = githubMatch ? `https://github.com/${githubMatch[1].replace(/\/$/, '')}` : undefined;
+      // Extract namespace from GitHub URL
+      let namespace = "unknown";
+      let slug = serverSlug;
 
-          // Extract server name and description from title/meta
-          const titleMatch = serverPageHtml.match(/<title>([^<]+)<\/title>/);
-          const title = titleMatch ? titleMatch[1].replace(' | PulseMCP', '').trim() : serverSlug;
-
-          const descMatch = serverPageHtml.match(/<meta\s+(?:name|property)=["'](?:og:)?description["']\s+content=["']([^"']+)["']/i);
-          const description = descMatch ? descMatch[1] : "";
-
-          // Extract namespace from GitHub URL or use provider name
-          let namespace = "unknown";
-          let slug = serverSlug;
-
-          if (githubMatch) {
-            const parts = githubMatch[1].split('/');
-            if (parts.length >= 2) {
-              namespace = parts[0];
-              slug = parts[1].replace(/\.git$/, '');
-            }
-          }
-
-          const id = `pulsemcp-${namespace}-${slug}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
-
-          // Extract NPM package if present
-          const npmMatch = serverPageHtml.match(/npx\s+([^"\s<]+)|npm\s+install\s+([^"\s<]+)/i);
-          const npmPackage = npmMatch ? (npmMatch[1] || npmMatch[2]) : undefined;
-
-          // Extract transport type (stdio or http)
-          let transport: "stdio" | "http" | undefined;
-          if (serverPageHtml.includes('stdio')) {
-            transport = "stdio";
-          } else if (serverPageHtml.includes('SSE') || serverPageHtml.includes('Server-Sent Events') || serverPageHtml.includes('HTTP')) {
-            transport = "http";
-          }
-
-          // Extract remote URL if available
-          const remoteUrlMatch = serverPageHtml.match(/https?:\/\/[^"\s<>]+\.(?:vercel\.app|railway\.app|render\.com|fly\.io|replit\.app)[^"\s<>]*/);
-          const remoteUrl = remoteUrlMatch ? remoteUrlMatch[0] : undefined;
-
-          // Check if it's remote-capable
-          const isRemote = serverPageHtml.includes('Remote Available') || serverPageHtml.includes('remote') || !!remoteUrl;
-
-          const server: McpServer = {
-            id,
-            name: title,
-            namespace,
-            slug,
-            description: description || `MCP server from PulseMCP: ${title}`,
-            attributes: isRemote ? ["hosting:remote-capable"] : [],
-            repository: repoUrl ? { url: repoUrl } : undefined,
-            transport,
-            remoteUrl,
-            packages: npmPackage ? [{
-              registryType: "npm",
-              identifier: npmPackage,
-            }] : undefined,
-            source: "mcp-registry",
-          };
-
-          servers.push(server);
-        } catch (error) {
-          console.warn(`  Warning: Failed to fetch ${serverSlug}: ${error instanceof Error ? error.message : String(error)}`);
+      if (githubMatch) {
+        const parts = githubMatch[1].split('/');
+        if (parts.length >= 2) {
+          namespace = parts[0];
+          slug = parts[1].replace(/\.git$/, '');
         }
       }
 
-      console.log(`  Fetched ${servers.length} total servers so far`);
+      // Extract NPM package if present
+      const npmMatch = serverPageHtml.match(/npx\s+([^"\s<]+)|npm\s+install\s+([^"\s<]+)/i);
+      const npmPackage = npmMatch ? (npmMatch[1] || npmMatch[2]) : undefined;
 
-      // Check if there's a next page
-      hasMore = html.includes('Next') || html.includes(`page=${page + 1}`);
-      page++;
-
-      // Safety limit to avoid infinite loops
-      if (page > 200) {
-        console.warn(`  Warning: Reached page limit (200), stopping`);
-        break;
+      // Extract transport type (stdio or http)
+      let transport: "stdio" | "http" | undefined;
+      if (serverPageHtml.includes('stdio')) {
+        transport = "stdio";
+      } else if (serverPageHtml.includes('SSE') || serverPageHtml.includes('Server-Sent Events') || serverPageHtml.includes('HTTP')) {
+        transport = "http";
       }
+
+      // Extract remote URL if available
+      const remoteUrlMatch = serverPageHtml.match(/https?:\/\/[^"\s<>]+\.(?:vercel\.app|railway\.app|render\.com|fly\.io|replit\.app)[^"\s<>]*/);
+      const remoteUrl = remoteUrlMatch ? remoteUrlMatch[0] : undefined;
+
+      // Check if it's remote-capable
+      const isRemote = serverPageHtml.includes('Remote Available') || serverPageHtml.includes('remote') || !!remoteUrl;
+
+      servers.push({
+        slug,
+        title,
+        description: description || `MCP server from PulseMCP: ${title}`,
+        namespace,
+        repoUrl,
+        npmPackage,
+        transport,
+        remoteUrl,
+        isRemote,
+      });
+    } catch (error) {
+      // Skip failed servers
     }
-  } catch (error) {
-    console.warn(`  Warning: Failed to scrape PulseMCP: ${error}`);
   }
 
-  console.log(`  Total from PulseMCP: ${servers.length}`);
-  return servers;
+  // Check if there's a next page
+  const hasNextPage = html.includes('Next') || html.includes(`page=${page + 1}`);
+
+  return { servers, hasNextPage };
+}
+
+async function fetchPulseMcpServers(): Promise<McpServer[]> {
+  console.log("\n[4/5] Fetching from PulseMCP...");
+
+  const allServers: McpServer[] = [];
+  let page = 1;
+
+  while (true) {
+    // Rate limiting before each page
+    if (page > 1) {
+      await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
+    }
+
+    const response = await fetchPulseMCPPage(page);
+
+    for (const pulsemcpServer of response.servers) {
+      const id = `pulsemcp-${pulsemcpServer.namespace}-${pulsemcpServer.slug}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+
+      const server: McpServer = {
+        id,
+        name: pulsemcpServer.title,
+        namespace: pulsemcpServer.namespace,
+        slug: pulsemcpServer.slug,
+        description: pulsemcpServer.description,
+        attributes: pulsemcpServer.isRemote ? ["hosting:remote-capable"] : [],
+        repository: pulsemcpServer.repoUrl ? { url: pulsemcpServer.repoUrl } : undefined,
+        transport: pulsemcpServer.transport,
+        remoteUrl: pulsemcpServer.remoteUrl,
+        packages: pulsemcpServer.npmPackage ? [{
+          registryType: "npm",
+          identifier: pulsemcpServer.npmPackage,
+        }] : undefined,
+        source: "pulsemcp",
+      };
+
+      allServers.push(server);
+    }
+
+    process.stdout.write(`\r  Page ${page}: ${response.servers.length} servers (total: ${allServers.length})`);
+
+    if (!response.hasNextPage || page >= 200) {
+      break;
+    }
+
+    page++;
+  }
+
+  console.log("");
+  return allServers;
 }
 
 // =============================================================================
@@ -602,61 +624,112 @@ async function fetchPulseMcpServers(): Promise<McpServer[]> {
 // =============================================================================
 
 /**
- * Normalize a server name by stripping common prefixes:
- * - Author/org names (e.g., "modelcontextprotocol/")
- * - "mcp-" prefix
- * - "server-" prefix
- * - "-mcp" suffix
- * - "-server" suffix
+ * Generate a unique key for server deduplication based on metadata.
+ * Uses namespace/slug as the canonical identifier.
  * 
- * Examples:
- * - "modelcontextprotocol/filesystem" -> "filesystem"
- * - "mcp-server-brave" -> "brave"
- * - "awesome-mcp-servers/github" -> "github"
- * - "user/mcp-gitlab-server" -> "gitlab"
+ * This is more reliable than name normalization because:
+ * - "google-calendar" and "google-docs" have different slugs
+ * - Same server from different sources will have same namespace/slug
+ * - Metadata-driven instead of string manipulation
  */
-function normalizeServerName(name: string, slug?: string): string {
-  let normalized = (name || slug || "").toLowerCase();
+function getServerDeduplicationKey(server: McpServer): string {
+  // Use namespace/slug as the primary key
+  const namespace = (server.namespace || "").toLowerCase().trim();
+  const slug = (server.slug || "").toLowerCase().trim();
 
-  // Remove author/org prefix (everything before /)
-  if (normalized.includes('/')) {
-    normalized = normalized.split('/').pop() || normalized;
+  if (namespace && slug) {
+    return `${namespace}/${slug}`;
   }
 
-  // Remove common prefixes and suffixes
-  normalized = normalized
-    .replace(/^mcp[-_]?/i, '')           // Remove "mcp-" or "mcp_" prefix
-    .replace(/[-_]?mcp$/i, '')           // Remove "-mcp" or "_mcp" suffix
-    .replace(/^server[-_]?/i, '')        // Remove "server-" prefix
-    .replace(/[-_]?server$/i, '')        // Remove "-server" suffix
-    .replace(/^@[^/]+\//, '')             // Remove npm scope
-    .replace(/[^a-z0-9]+/g, '-')         // Normalize separators
-    .replace(/^-+|-+$/g, '');            // Trim dashes
-
-  return normalized || name.toLowerCase();
-}
-
-function deduplicateServers(servers: McpServer[]): McpServer[] {
-  const byName = new Map<string, McpServer>();
-
-  for (const server of servers) {
-    const normalizedName = normalizeServerName(server.name, server.slug);
-    const existing = byName.get(normalizedName);
-
-    if (!existing) {
-      // First occurrence - add it
-      byName.set(normalizedName, server);
-    } else {
-      // Duplicate detected - prefer MCP Registry (has most complete data)
-      if (server.source === "mcp-registry" && existing.source !== "mcp-registry") {
-        // MCP Registry has transport, packages, remoteUrl - use it
-        byName.set(normalizedName, server);
-      }
-      // Otherwise keep the first occurrence (no merging)
+  // Fallback: try to extract from repository URL
+  if (server.repository?.url) {
+    const match = server.repository.url.match(/github\.com\/([^\/]+)\/([^\/\.]+)/);
+    if (match) {
+      return `${match[1]}/${match[2]}`.toLowerCase();
     }
   }
 
-  return Array.from(byName.values());
+  // Last resort: use the server ID
+  return server.id.toLowerCase();
+}
+
+function deduplicateServers(servers: McpServer[]): McpServer[] {
+  const byKey = new Map<string, McpServer>();
+  const duplicateCount = new Map<string, number>();
+
+  for (const server of servers) {
+    const key = getServerDeduplicationKey(server);
+    const existing = byKey.get(key);
+
+    if (!existing) {
+      // First occurrence - add it
+      byKey.set(key, server);
+      duplicateCount.set(key, 1);
+    } else {
+      // Duplicate detected - track count
+      duplicateCount.set(key, (duplicateCount.get(key) || 1) + 1);
+
+      // Prefer sources in priority order: mcp-registry > glama > mcp-so > pulsemcp
+      const sourcePriority = {
+        "mcp-registry": 4,
+        "glama": 3,
+        "mcp-so": 2,
+        "pulsemcp": 1,
+        "awesome-mcp-servers": 0,
+      };
+
+      const existingPriority = sourcePriority[existing.source] || 0;
+      const newPriority = sourcePriority[server.source] || 0;
+
+      if (newPriority > existingPriority) {
+        // Higher priority source - replace
+        byKey.set(key, server);
+      } else if (newPriority === existingPriority) {
+        // Same priority - merge metadata, prefer non-empty values
+        const merged: McpServer = { ...existing };
+
+        // Merge repository info
+        if (server.repository?.url && !existing.repository?.url) {
+          merged.repository = server.repository;
+        }
+
+        // Merge packages
+        if (server.packages && server.packages.length > 0 && (!existing.packages || existing.packages.length === 0)) {
+          merged.packages = server.packages;
+        }
+
+        // Merge remotes/remoteUrl
+        if (server.remotes && server.remotes.length > 0 && (!existing.remotes || existing.remotes.length === 0)) {
+          merged.remotes = server.remotes;
+        }
+        if (server.remoteUrl && !existing.remoteUrl) {
+          merged.remoteUrl = server.remoteUrl;
+        }
+
+        // Merge transport
+        if (server.transport && !existing.transport) {
+          merged.transport = server.transport;
+        }
+
+        // Merge tools
+        if (server.tools && server.tools.length > 0 && (!existing.tools || existing.tools.length === 0)) {
+          merged.tools = server.tools;
+        }
+
+        byKey.set(key, merged);
+      }
+      // Otherwise keep existing (lower priority source doesn't replace)
+    }
+  }
+
+  // Log duplicate statistics
+  const hadDuplicates = Array.from(duplicateCount.entries()).filter(([_, count]) => count > 1);
+  if (hadDuplicates.length > 0) {
+    console.log(`\n  Found ${hadDuplicates.length} servers with duplicates across sources`);
+    console.log(`  (Total duplicates removed: ${servers.length - byKey.size})`);
+  }
+
+  return Array.from(byKey.values());
 }
 
 // =============================================================================
@@ -670,14 +743,14 @@ async function main() {
 
   // Fetch from all sources
   const mcpRegistryServers = await fetchMcpRegistryServers();
-  const awesomeServers = await fetchAwesomeServers();
+  const glamaServers = await fetchGlamaServers();
   const mcpSoServers = await fetchMcpSoServers();
   const pulseMcpServers = await fetchPulseMcpServers();
 
   console.log("\n[5/5] Deduplicating...");
 
   // Combine and deduplicate
-  const allServers = [...mcpRegistryServers, ...awesomeServers, ...mcpSoServers, ...pulseMcpServers];
+  const allServers = [...mcpRegistryServers, ...glamaServers, ...mcpSoServers, ...pulseMcpServers];
   const deduplicated = deduplicateServers(allServers);
 
   // Sort by namespace/slug for deterministic output
@@ -691,6 +764,7 @@ async function main() {
   const registryData: RegistryData = {
     sources: [
       "registry.modelcontextprotocol.io/v0/servers",
+      "glama.ai/sitemaps/mcp-servers.xml",
       "github.com/punkpeye/awesome-mcp-servers",
       "mcp.so",
       "pulsemcp.com",
@@ -703,9 +777,11 @@ async function main() {
   await fs.mkdir(path.dirname(OUTPUT_PATH), { recursive: true });
   await fs.writeFile(OUTPUT_PATH, JSON.stringify(registryData, null, 2), "utf8");
 
-  // Stats
+  // Stats by source
   const fromMcpRegistry = deduplicated.filter(s => s.source === "mcp-registry").length;
-  const fromAwesome = deduplicated.filter(s => s.source === "awesome-mcp-servers").length;
+  const fromGlama = deduplicated.filter(s => s.source === "glama").length;
+  const fromMcpSo = deduplicated.filter(s => s.source === "mcp-so").length;
+  const fromPulseMcp = deduplicated.filter(s => s.source === "pulsemcp").length;
   const withTools = deduplicated.filter(s => s.tools && s.tools.length > 0).length;
   const withRepo = deduplicated.filter(s => s.repository?.url).length;
   const withPackages = deduplicated.filter(s => s.packages && s.packages.length > 0).length;
@@ -717,7 +793,9 @@ async function main() {
   console.log("╠══════════════════════════════════════════════════════════════╣");
   console.log(`║  Total servers: ${deduplicated.length.toString().padEnd(45)}║`);
   console.log(`║  From MCP Registry: ${fromMcpRegistry.toString().padEnd(41)}║`);
-  console.log(`║  From awesome-mcp-servers: ${fromAwesome.toString().padEnd(34)}║`);
+  console.log(`║  From Glama.ai: ${fromGlama.toString().padEnd(45)}║`);
+  console.log(`║  From mcp.so: ${fromMcpSo.toString().padEnd(47)}║`);
+  console.log(`║  From PulseMCP: ${fromPulseMcp.toString().padEnd(45)}║`);
   console.log(`║  With tools metadata: ${withTools.toString().padEnd(39)}║`);
   console.log(`║  With repository URL: ${withRepo.toString().padEnd(39)}║`);
   console.log(`║  With packages: ${withPackages.toString().padEnd(45)}║`);
