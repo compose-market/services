@@ -349,79 +349,91 @@ async function fetchAwesomeServers(): Promise<McpServer[]> {
 }
 
 // =============================================================================
-// MCP.so Scraping
+// MCP.so Scraping via XML Sitemaps
 // =============================================================================
 
 async function fetchMcpSoServers(): Promise<McpServer[]> {
   console.log("\n[3/5] Fetching from mcp.so...");
 
   const servers: McpServer[] = [];
+  const sitemapUrls = [
+    "https://mcp.so/sitemap_projects_1.xml",
+    "https://mcp.so/sitemap_projects_2.xml",
+    "https://mcp.so/sitemap_projects_3.xml",
+    "https://mcp.so/sitemap_projects_4.xml",
+  ];
 
   try {
-    // Fetch the main servers page to extract server listings
-    const res = await fetch(`${MCP_SO_BASE}/servers`);
-    if (!res.ok) {
-      console.warn(`  Warning: Could not fetch mcp.so: ${res.status}`);
-      return [];
-    }
+    // Fetch all sitemap XMLs
+    for (const sitemapUrl of sitemapUrls) {
+      console.log(`  Fetching ${sitemapUrl}...`);
 
-    const html = await res.text();
+      const res = await fetch(sitemapUrl);
+      if (!res.ok) {
+        console.warn(`  Warning: Could not fetch ${sitemapUrl}: ${res.status}`);
+        continue;
+      }
 
-    // Extract server links using regex
-    // Pattern: /server/<slug>/<namespace> or similar
-    const serverLinkRegex = /href="\/server\/([^"\/]+)\/([^"]+)"/g;
-    const matches = [...html.matchAll(serverLinkRegex)];
+      const xml = await res.text();
 
-    console.log(`  Found ${matches.length} server links`);
+      // Extract all <loc> URLs pointing to /server/
+      const urlMatches = xml.matchAll(/<loc>(https:\/\/mcp\.so\/server\/([^<]+))<\/loc>/g);
 
-    for (const match of matches) {
-      const [, slug, namespace] = match;
+      for (const match of urlMatches) {
+        const [, fullUrl, path] = match;
+        // path format: "server-name/namespace"
+        const parts = path.split('/');
+        if (parts.length < 2) continue;
 
-      // Rate limiting
-      await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
+        const slug = parts[0];
+        const namespace = parts[1];
 
-      try {
-        const serverPageRes = await fetch(`${MCP_SO_BASE}/server/${slug}/${namespace}`);
-        if (!serverPageRes.ok) continue;
+        // Rate limiting - only for individual page fetches
+        await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY));
 
-        const serverPageHtml = await serverPageRes.text();
+        try {
+          const serverPageRes = await fetch(fullUrl);
+          if (!serverPageRes.ok) continue;
 
-        // Extract GitHub repository URL
-        const githubMatch = serverPageHtml.match(/github\.com\/([^"'\s<>]+)/);
-        const repoUrl = githubMatch ? `https://github.com/${githubMatch[1].replace(/\/$/, '')}` : undefined;
+          const serverPageHtml = await serverPageRes.text();
 
-        // Extract NPM package from config
-        const npmConfigMatch = serverPageHtml.match(/"command":\s*"npx",\s*"args":\s*\[\s*"([^"]+)"/);
-        const npmPackage = npmConfigMatch ? npmConfigMatch[1] : undefined;
+          // Extract GitHub repository URL
+          const githubMatch = serverPageHtml.match(/github\.com\/([^"'\s<>]+)/);
+          const repoUrl = githubMatch ? `https://github.com/${githubMatch[1].replace(/\/$/, '')}` : undefined;
 
-        // Extract description
-        const descMatch = serverPageHtml.match(/<meta\s+(?:name|property)=["'](?:og:)?description["']\s+content=["']([^"']+)["']/i);
-        const description = descMatch ? descMatch[1] : "";
+          // Extract NPM package from config
+          const npmConfigMatch = serverPageHtml.match(/"command":\s*"npx",\s*"args":\s*\[\s*"([^"]+)"/);
+          const npmPackage = npmConfigMatch ? npmConfigMatch[1] : undefined;
 
-        const id = `mcpso-${namespace}-${slug}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+          // Extract description
+          const descMatch = serverPageHtml.match(/<meta\s+(?:name|property)=["'](?:og:)?description["']\s+content=["']([^"']+)["']/i);
+          const description = descMatch ? descMatch[1] : "";
 
-        const server: McpServer = {
-          id,
-          name: `${namespace}/${slug}`,
-          namespace,
-          slug,
-          description: description || `MCP server from mcp.so: ${slug}`,
-          attributes: [],
-          repository: repoUrl ? { url: repoUrl } : undefined,
-          packages: npmPackage ? [{
-            registryType: "npm",
-            identifier: npmPackage,
-          }] : undefined,
-          source: "mcp-registry", // Treat mcp.so as part of the broader registry
-        };
+          const id = `mcpso-${namespace}-${slug}`.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 
-        servers.push(server);
+          const server: McpServer = {
+            id,
+            name: `${namespace}/${slug}`,
+            namespace,
+            slug,
+            description: description || `MCP server from mcp.so: ${slug}`,
+            attributes: [],
+            repository: repoUrl ? { url: repoUrl } : undefined,
+            packages: npmPackage ? [{
+              registryType: "npm",
+              identifier: npmPackage,
+            }] : undefined,
+            source: "mcp-registry",
+          };
 
-        if (servers.length % 100 === 0) {
-          console.log(`  Fetched ${servers.length} servers from mcp.so`);
+          servers.push(server);
+
+          if (servers.length % 100 === 0) {
+            console.log(`  Fetched ${servers.length} servers from mcp.so`);
+          }
+        } catch (error) {
+          console.warn(`  Warning: Failed to fetch ${namespace}/${slug}: ${error}`);
         }
-      } catch (error) {
-        console.warn(`  Warning: Failed to fetch ${namespace}/${slug}: ${error}`);
       }
     }
   } catch (error) {
