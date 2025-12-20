@@ -1,0 +1,4088 @@
+{
+  "source": "github:elizaos-plugins/registry",
+  "updatedAt": "2025-12-02T19:23:54.882Z",
+  "count": 209,
+  "plugins": [
+    {
+      "id": "eliza-client-twitter",
+      "name": "Client: Twitter",
+      "slug": "client-twitter",
+      "namespace": "elizaos",
+      "description": "This package integrates Twitter/X with the Eliza AI agent, enabling post generation, interaction handling, search functionality, Twitter Spaces support, and an optional approval workflow via Discord.",
+      "keywords": [
+        "elizaos",
+        "client",
+        "twitter",
+        "ai",
+        "elizaos-plugin",
+        "social"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/client-twitter",
+      "source": "eliza",
+      "stars": 38,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-twitter",
+      "name": "Plugin: Twitter",
+      "slug": "plugin-twitter",
+      "namespace": "elizaos",
+      "description": "A plugin for Twitter/X integration, enabling automated tweet posting and context-aware content generation.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "twitter",
+        "ai",
+        "elizaos-plugin",
+        "social"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-twitter",
+      "source": "eliza",
+      "stars": 33,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-auton8n",
+      "name": "Plugin: Auton8n",
+      "slug": "plugin-auton8n",
+      "namespace": "elizaos",
+      "description": "Automatically generate n8n workflows which your agent can set up and run",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "auton8n"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-auton8n",
+      "source": "eliza",
+      "stars": 20,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-payai",
+      "name": "Plugin: Payai",
+      "slug": "plugin-payai",
+      "namespace": "elizaos",
+      "description": "Eliza plugin for the PayAI marketplace.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "payai",
+        "agentic-ai",
+        "ai",
+        "crypto",
+        "cryptocurrency",
+        "elizaos-plugin",
+        "elizaos-plugins",
+        "solana",
+        "web3"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/payainetwork/plugin-payai",
+      "homepage": "https://payai.gitbook.io/payai-docs",
+      "source": "eliza",
+      "stars": 20,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-ton",
+      "name": "Plugin: Ton",
+      "slug": "plugin-ton",
+      "namespace": "elizaos",
+      "description": "A plugin for managing TON (The Open Network) blockchain operations, including wallet management and secure token transfers.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "ton",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-ton",
+      "source": "eliza",
+      "stars": 17,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-evm",
+      "name": "Plugin: Evm",
+      "slug": "plugin-evm",
+      "namespace": "elizaos",
+      "description": "This plugin enables interaction with EVM-compatible chains, supporting token transfers, cross-chain bridging, and swaps via LiFi integration.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "evm",
+        "crypto",
+        "elizaos-plugin",
+        "blockchain"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-evm",
+      "source": "eliza",
+      "stars": 16,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-hyperliquid",
+      "name": "Plugin: Hyperliquid",
+      "slug": "plugin-hyperliquid",
+      "namespace": "elizaos",
+      "description": "This plugin enables interaction with the Hyperliquid DEX through Eliza, offering spot trading capabilities.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "hyperliquid",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-hyperliquid",
+      "source": "eliza",
+      "stars": 12,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-coingecko",
+      "name": "Plugin: Coingecko",
+      "slug": "plugin-coingecko",
+      "namespace": "elizaos",
+      "description": "A plugin for fetching real-time cryptocurrency price data and market information from the CoinGecko API.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "coingecko",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-coingecko",
+      "source": "eliza",
+      "stars": 11,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-knowledge",
+      "name": "Plugin: Knowledge",
+      "slug": "plugin-knowledge",
+      "namespace": "elizaos",
+      "description": "Eliza RAG Knowledge Plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "knowledge"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-knowledge",
+      "source": "eliza",
+      "stars": 11,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-sui",
+      "name": "Plugin: Sui",
+      "slug": "plugin-sui",
+      "namespace": "elizaos",
+      "description": "Core Sui blockchain plugin for Eliza OS, enabling token operations and wallet management on the Sui network.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "sui",
+        "crypto",
+        "elizaos-plugin",
+        "blockchain"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-sui",
+      "source": "eliza",
+      "stars": 10,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-client-discord",
+      "name": "Client: Discord",
+      "slug": "client-discord",
+      "namespace": "elizaos",
+      "description": "A Discord client for ElizaOS, enabling integration with Discord servers for interaction, voice, and message management.",
+      "keywords": [
+        "elizaos",
+        "client",
+        "discord",
+        "elizaos-plugin",
+        "social"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/client-discord",
+      "source": "eliza",
+      "stars": 9,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-client-twitter-api-access",
+      "name": "Client: Twitter api access",
+      "slug": "client-twitter-api-access",
+      "namespace": "elizaos",
+      "description": "This package uses the V2 X API to integrate X with the Eliza AI agent, enabling post generation, interaction handling, search functionality, Twitter Spaces support, and an optional approval workflow via Discord. ",
+      "keywords": [
+        "elizaos",
+        "client",
+        "twitter-api-access",
+        "ai",
+        "elizaos-plugins",
+        "twitter-bot",
+        "web3",
+        "social"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/payainetwork/client-twitter-api-access",
+      "source": "eliza",
+      "stars": 9,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-solana",
+      "name": "Plugin: Solana",
+      "slug": "plugin-solana",
+      "namespace": "elizaos",
+      "description": "Core Solana blockchain plugin for Eliza OS, enabling token operations, trading, and DeFi integrations.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "solana",
+        "crypto",
+        "elizaos-plugin",
+        "blockchain"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-solana",
+      "source": "eliza",
+      "stars": 9,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-composio",
+      "name": "Plugin: Composio",
+      "slug": "plugin-composio",
+      "namespace": "elizaos",
+      "description": "A powerful ElizaOS plugin that integrates 250+ external tool integrations",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "composio",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/standujar/plugin-composio",
+      "source": "eliza",
+      "stars": 9,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-adapter-supabase",
+      "name": "Adapter: Supabase",
+      "slug": "adapter-supabase",
+      "namespace": "elizaos",
+      "description": "Enables ElizaOS integration with Supabase for data persistence and real-time capabilities.",
+      "keywords": [
+        "elizaos",
+        "adapter",
+        "supabase",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/adapter-supabase",
+      "source": "eliza",
+      "stars": 8,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-farcaster",
+      "name": "Plugin: Farcaster",
+      "slug": "plugin-farcaster",
+      "namespace": "elizaos",
+      "description": "ElizaOS Farcaster plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "farcaster",
+        "social"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-farcaster",
+      "source": "eliza",
+      "stars": 8,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-obsidian",
+      "name": "Plugin: Obsidian",
+      "slug": "plugin-obsidian",
+      "namespace": "elizaos",
+      "description": "An Obsidian plugin for ELIZA OS that enables powerful file and note management within Obsidian vaults.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "obsidian",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-obsidian",
+      "source": "eliza",
+      "stars": 8,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-mcp",
+      "name": "Plugin: Mcp",
+      "slug": "plugin-mcp",
+      "namespace": "elizaos",
+      "description": "ElizaOS plugin allowing agents to connect to MCP servers",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "mcp"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-mcp",
+      "source": "eliza",
+      "stars": 7,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-openrouter",
+      "name": "Plugin: Openrouter",
+      "slug": "plugin-openrouter",
+      "namespace": "elizaos",
+      "description": "ElizaOS Openrouter plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "openrouter"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-openrouter",
+      "source": "eliza",
+      "stars": 7,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-rabbi-trader",
+      "name": "Plugin: Rabbi trader",
+      "slug": "plugin-rabbi-trader",
+      "namespace": "elizaos",
+      "description": "ElizaOS Rabbi trader plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "rabbi-trader",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-rabbi-trader",
+      "source": "eliza",
+      "stars": 7,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-telegram",
+      "name": "Plugin: Telegram",
+      "slug": "plugin-telegram",
+      "namespace": "elizaos",
+      "description": "ElizaOS Telegram plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "telegram",
+        "social"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-telegram",
+      "source": "eliza",
+      "stars": 7,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-bioagent",
+      "name": "Plugin: Bioagent",
+      "slug": "plugin-bioagent",
+      "namespace": "elizaos",
+      "description": "ElizaOS Bioagent plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "bioagent",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/bio-xyz/plugin-bioagent",
+      "source": "eliza",
+      "stars": 6,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-goat",
+      "name": "Plugin: Goat",
+      "slug": "plugin-goat",
+      "namespace": "elizaos",
+      "description": "A plugin for integrating blockchain capabilities into the ElizaOS ecosystem using the GOAT framework, enabling AI agents to interact with blockchain protocols.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "goat",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-goat",
+      "source": "eliza",
+      "stars": 6,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-polymarket",
+      "name": "Plugin: Polymarket",
+      "slug": "plugin-polymarket",
+      "namespace": "elizaos",
+      "description": "An ElizaOs plugin that enables Polymarket market data and trading on an agent",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "polymarket",
+        "crypto",
+        "elizaos-plugins",
+        "prediction-markets"
+      ],
+      "version": "0.3.0",
+      "repository": "https://github.com/Okay-Bet/plugin-polymarket",
+      "source": "eliza",
+      "stars": 6,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-akash",
+      "name": "Plugin: Akash",
+      "slug": "plugin-akash",
+      "namespace": "elizaos",
+      "description": "A plugin for Eliza that facilitates deployment management and cloud compute operations on the Akash Network.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "akash",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-akash",
+      "source": "eliza",
+      "stars": 5,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-binance",
+      "name": "Plugin: Binance",
+      "slug": "plugin-binance",
+      "namespace": "elizaos",
+      "description": "Enables Eliza to interact with Binance for price checks, trades, and managing wallet balances.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "binance",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-binance",
+      "source": "eliza",
+      "stars": 5,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-bless",
+      "name": "Plugin: Bless",
+      "slug": "plugin-bless",
+      "namespace": "elizaos",
+      "description": "A plugin enabling ElizaOS agents to interact with the Bless Network.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "bless",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/blessnetwork/elizaos-bless-plugin",
+      "source": "eliza",
+      "stars": 5,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-echochambers",
+      "name": "Plugin: Echochambers",
+      "slug": "plugin-echochambers",
+      "namespace": "elizaos",
+      "description": "Enables ELIZA to interact in chat rooms with dynamic conversational capabilities.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "echochambers",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-echochambers",
+      "source": "eliza",
+      "stars": 5,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-executor",
+      "name": "Plugin: Executor",
+      "slug": "plugin-executor",
+      "namespace": "elizaos",
+      "description": "t3rn blockchain executor plugin for Eliza OS.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "executor",
+        "ai",
+        "crypto",
+        "elizaos-plugins",
+        "t3rn"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/t3rn/plugin-t3rn-executor",
+      "homepage": "https://www.t3rn.io/",
+      "source": "eliza",
+      "stars": 5,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-near",
+      "name": "Plugin: Near",
+      "slug": "plugin-near",
+      "namespace": "elizaos",
+      "description": "A plugin for Eliza OS that integrates NEAR Protocol for token management, transfers, and swaps via Ref Finance.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "near",
+        "crypto",
+        "elizaos-plugin",
+        "blockchain"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-near",
+      "source": "eliza",
+      "stars": 5,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-nft-generation",
+      "name": "Plugin: Nft generation",
+      "slug": "plugin-nft-generation",
+      "namespace": "elizaos",
+      "description": "NFT collection generation plugin for Eliza OS that enables creation, management, and verification of NFTs on the Solana blockchain.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "nft-generation",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-nft-generation",
+      "source": "eliza",
+      "stars": 5,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-solana-agent-kit",
+      "name": "Plugin: Solana agent kit",
+      "slug": "plugin-solana-agent-kit",
+      "namespace": "elizaos",
+      "description": "Integrates Solana Agent Kit into Eliza for token operations, swaps, lending, and staking on Solana.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "solana-agent-kit",
+        "crypto",
+        "elizaos-plugin",
+        "blockchain"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-solana-agent-kit",
+      "source": "eliza",
+      "stars": 5,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-storacha",
+      "name": "Plugin: Storacha",
+      "slug": "plugin-storacha",
+      "namespace": "elizaos",
+      "description": "🔌 A plugin providing distributed storage functionality for ElizaOS agents.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "storacha",
+        "client",
+        "decentralized",
+        "decentralized-storage",
+        "elizaos-plugins",
+        "filecoin",
+        "ipfs",
+        "storage",
+        "web3"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/storacha/elizaos-plugin",
+      "homepage": "https://storacha.ai",
+      "source": "eliza",
+      "stars": 5,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-web-search",
+      "name": "Plugin: Web search",
+      "slug": "plugin-web-search",
+      "namespace": "elizaos",
+      "description": "A plugin for powerful web search capabilities, enabling efficient search query handling and result processing through a customizable API interface.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "web-search",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-web-search",
+      "source": "eliza",
+      "stars": 5,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-client-farcaster",
+      "name": "Client: Farcaster",
+      "slug": "client-farcaster",
+      "namespace": "elizaos",
+      "description": "Client that enables eliza agents to integrate with the Farcaster social network",
+      "keywords": [
+        "elizaos",
+        "client",
+        "farcaster",
+        "elizaos-plugin",
+        "social"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/client-farcaster",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-client-telegram",
+      "name": "Client: Telegram",
+      "slug": "client-telegram",
+      "namespace": "elizaos",
+      "description": "Integrates a Telegram client with ElizaOS, enabling characters to interact via Telegram with easy setup and basic lifecycle management.",
+      "keywords": [
+        "elizaos",
+        "client",
+        "telegram",
+        "elizaos-plugin",
+        "social"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/client-telegram",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-3d-generation",
+      "name": "Plugin: 3d generation",
+      "slug": "plugin-3d-generation",
+      "namespace": "elizaos",
+      "description": "A plugin for generating 3D models using the FAL.ai API within the ElizaOS ecosystem.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "3d-generation",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-3d-generation",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-autocoder",
+      "name": "Plugin: Autocoder",
+      "slug": "plugin-autocoder",
+      "namespace": "elizaos",
+      "description": "Autocoder for ElizaOS - Auto generate new plugins!",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "autocoder"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-autocoder",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-coinbase",
+      "name": "Plugin: Coinbase",
+      "slug": "plugin-coinbase",
+      "namespace": "elizaos",
+      "description": "A Coinbase integration plugin for ElizaOS, offering access to APIs for commerce, trading, token management, mass payments, advanced trading features, and webhook management.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "coinbase",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-coinbase",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-depin",
+      "name": "Plugin: Depin",
+      "slug": "plugin-depin",
+      "namespace": "elizaos",
+      "description": "Connects AI agents to physical infrastructure through Decentralized Physical Infrastructure Networks.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "depin",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-depin",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-dexpaprika",
+      "name": "Plugin: Dexpaprika",
+      "slug": "plugin-dexpaprika",
+      "namespace": "elizaos",
+      "description": "ElizaOS plugin for accessing real-time DeFi analytics via DexPaprika API. Get data on blockchain networks, DEXes, liquidity pools, and tokens.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "dexpaprika",
+        "blockchain",
+        "crypto",
+        "defi",
+        "elizaos-plugin"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/donbagger/plugin-dexpaprika",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-edwin",
+      "name": "Plugin: Edwin",
+      "slug": "plugin-edwin",
+      "namespace": "elizaos",
+      "description": "A plugin for Eliza that enables interaction with Edwin tools for decentralized finance (DeFi) operations.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "edwin",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-edwin",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-firecrawl",
+      "name": "Plugin: Firecrawl",
+      "slug": "plugin-firecrawl",
+      "namespace": "elizaos",
+      "description": "This is the plugin for the firecrawl service with Eliza. This plugin is capable of data scraping and web search.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "firecrawl"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/tobySolutions/plugin-firecrawl",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-multichain",
+      "name": "Plugin: Multichain",
+      "slug": "plugin-multichain",
+      "namespace": "elizaos",
+      "description": "Eliza plugin for multichain operations",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "multichain",
+        "ai",
+        "bitcoin",
+        "chain-signatures",
+        "cosmos",
+        "crypto",
+        "elizaos-plugins",
+        "ethereum",
+        "evm",
+        "near",
+        "near-intents"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/near-agent/elizaos-plugin-multichain",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-ollama",
+      "name": "Plugin: Ollama",
+      "slug": "plugin-ollama",
+      "namespace": "elizaos",
+      "description": "ElizaOS Ollama plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "ollama",
+        "ai"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-ollama",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-openai",
+      "name": "Plugin: Openai",
+      "slug": "plugin-openai",
+      "namespace": "elizaos",
+      "description": "Integrates OpenAI's GPT models for automated text generation with customizable prompts.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "openai",
+        "ai"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-openai",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-story",
+      "name": "Plugin: Story",
+      "slug": "plugin-story",
+      "namespace": "elizaos",
+      "description": "Enables interaction with Story Protocol - an IP management system on that allows creators to register, license, and manage their intellectual property assets",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "story",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-story",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-whatsapp",
+      "name": "Plugin: Whatsapp",
+      "slug": "plugin-whatsapp",
+      "namespace": "elizaos",
+      "description": "A plugin for integrating WhatsApp Cloud API with applications, enabling messaging capabilities and webhook handling.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "whatsapp",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-whatsapp",
+      "source": "eliza",
+      "stars": 4,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-d.a.t.a",
+      "name": "Plugin: D.a.t.a",
+      "slug": "plugin-d.a.t.a",
+      "namespace": "elizaos",
+      "description": "ElizaOS D.a.t.a plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "d.a.t.a"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/carv-protocol/plugin-d.a.t.a",
+      "source": "eliza",
+      "stars": 3,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-dcap",
+      "name": "Plugin: Dcap",
+      "slug": "plugin-dcap",
+      "namespace": "elizaos",
+      "description": "A plugin for verifying DCAP attestation on-chain, supporting both TDX and SGX environments.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "dcap",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-dcap",
+      "source": "eliza",
+      "stars": 3,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-discord",
+      "name": "Plugin: Discord",
+      "slug": "plugin-discord",
+      "namespace": "elizaos",
+      "description": "A Discord plugin for ElizaOS, enabling integration with Discord servers for interaction, voice, and message management.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "discord",
+        "social"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-discord",
+      "source": "eliza",
+      "stars": 3,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-intiface",
+      "name": "Plugin: Intiface",
+      "slug": "plugin-intiface",
+      "namespace": "elizaos",
+      "description": "A plugin for Eliza OS that integrates with Intiface/Buttplug.io for controlling intimate hardware devices.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "intiface",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-intiface",
+      "source": "eliza",
+      "stars": 3,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-livekit",
+      "name": "Plugin: Livekit",
+      "slug": "plugin-livekit",
+      "namespace": "elizaos",
+      "description": "ElizaOS Livekit plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "livekit"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-livekit",
+      "source": "eliza",
+      "stars": 3,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-shell",
+      "name": "Plugin: Shell",
+      "slug": "plugin-shell",
+      "namespace": "elizaos",
+      "description": "A shell plugin for ElizaOS. USE AT YOUR OWN RISK. THIS GIVES AI FULL ACCESS TO THE HOST MACHINE",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "shell"
+      ],
+      "version": "v0.2.0",
+      "repository": "https://github.com/elizaos-plugins/plugin-shell",
+      "source": "eliza",
+      "stars": 3,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-venice",
+      "name": "Plugin: Venice",
+      "slug": "plugin-venice",
+      "namespace": "elizaos",
+      "description": "ElizaOS Venice plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "venice"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-venice",
+      "source": "eliza",
+      "stars": 3,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-youtube-to-text",
+      "name": "Plugin: Youtube to text",
+      "slug": "plugin-youtube-to-text",
+      "namespace": "elizaos",
+      "description": "ElizaOS Youtube to text plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "youtube-to-text"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/wellaios/plugin-youtube-to-text",
+      "source": "eliza",
+      "stars": 3,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-adapter-postgres",
+      "name": "Adapter: Postgres",
+      "slug": "adapter-postgres",
+      "namespace": "elizaos",
+      "description": "Adapter that provides PostgreSQL connectivity with vector embedding support for semantic search capabilities.",
+      "keywords": [
+        "elizaos",
+        "adapter",
+        "postgres"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/adapter-postgres",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-client-slack",
+      "name": "Client: Slack",
+      "slug": "client-slack",
+      "namespace": "elizaos",
+      "description": "This package integrates the Eliza AI agent with Slack, allowing users to interact with Eliza within a Slack workspace.",
+      "keywords": [
+        "elizaos",
+        "client",
+        "slack",
+        "elizaos-plugin",
+        "social"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/client-slack",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-client-tako",
+      "name": "Client: Tako",
+      "slug": "client-tako",
+      "namespace": "elizaos",
+      "description": "Tako Client for ElizaOS",
+      "keywords": [
+        "elizaos",
+        "client",
+        "tako"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/takoprotocol/client-tako",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-ankr",
+      "name": "Plugin: Ankr",
+      "slug": "plugin-ankr",
+      "namespace": "elizaos",
+      "description": "Provides blockchain data query interfaces for wallet information, NFT operations, and token analytics.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "ankr"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-ankr",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-avalanche",
+      "name": "Plugin: Avalanche",
+      "slug": "plugin-avalanche",
+      "namespace": "elizaos",
+      "description": "A plugin for comprehensive DeFi operations on the Avalanche blockchain within the ElizaOS ecosystem, including token transfers, swaps, and yield strategy management.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "avalanche",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-avalanche",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-bink",
+      "name": "Plugin: Bink",
+      "slug": "plugin-bink",
+      "namespace": "elizaos",
+      "description": "ElizaOS Bink plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "bink"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/Bink-AI/elizaos-plugin-binkai",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-browser",
+      "name": "Plugin: Browser",
+      "slug": "plugin-browser",
+      "namespace": "elizaos",
+      "description": "Web scraping and content extraction with Playwright",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "browser"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-browser",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-cardano",
+      "name": "Plugin: Cardano",
+      "slug": "plugin-cardano",
+      "namespace": "elizaos",
+      "description": "ElizaOS Cardano plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "cardano"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/relipasoft/plugin-cardano",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-computer-use",
+      "name": "Plugin: Computer use",
+      "slug": "plugin-computer-use",
+      "namespace": "elizaos",
+      "description": "ElizaOS Computer use plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "computer-use",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/amit0365/plugin-computer-use",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-elevenlabs",
+      "name": "Plugin: Elevenlabs",
+      "slug": "plugin-elevenlabs",
+      "namespace": "elizaos",
+      "description": "ElizaOS Elevenlabs plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "elevenlabs"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-elevenlabs",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-giphy",
+      "name": "Plugin: Giphy",
+      "slug": "plugin-giphy",
+      "namespace": "elizaos",
+      "description": "A plugin for enhancing agent interactions by responding with relevant GIFs based on user inputs using the Giphy API.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "giphy",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-giphy",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-google-genai",
+      "name": "Plugin: Google genai",
+      "slug": "plugin-google-genai",
+      "namespace": "elizaos",
+      "description": "LLM ElizaOS plugin for google genai",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "google-genai"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-google-genai",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-goplus",
+      "name": "Plugin: Goplus",
+      "slug": "plugin-goplus",
+      "namespace": "elizaos",
+      "description": "A plugin for on-chain security checks via GoPlus API integration.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "goplus",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-goplus",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-grix",
+      "name": "Plugin: Grix",
+      "slug": "plugin-grix",
+      "namespace": "elizaos",
+      "description": "defi-options-data-plugin – A plugin for real-time DeFi options data fetching and price analysis via Grix Finance API.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "grix",
+        "ai",
+        "ai-defi",
+        "derivatives",
+        "elizaos-plugin"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/grixprotocol/plugin-grix",
+      "homepage": "https://grix.finance",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-kaia",
+      "name": "Plugin: Kaia",
+      "slug": "plugin-kaia",
+      "namespace": "elizaos",
+      "description": "Kaia Plugin for ElizaOS",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "kaia",
+        "ai",
+        "blockchain",
+        "elizaos-plugins",
+        "layer1"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/kaiachain/kaia-eliza-plugin",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-local-ai",
+      "name": "Plugin: Local ai",
+      "slug": "plugin-local-ai",
+      "namespace": "elizaos",
+      "description": "ElizaOS Local ai plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "local-ai"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-local-ai",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-messari-ai-toolkit",
+      "name": "Plugin: Messari ai toolkit",
+      "slug": "plugin-messari-ai-toolkit",
+      "namespace": "elizaos",
+      "description": "ElizaOS Messari ai toolkit plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "messari-ai-toolkit"
+      ],
+      "version": "v0.0.2",
+      "repository": "https://github.com/messari/plugin-messari-ai-toolkit",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-node",
+      "name": "Plugin: Node",
+      "slug": "plugin-node",
+      "namespace": "elizaos",
+      "description": "ElizaOS Node plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "node",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-node",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-open-weather",
+      "name": "Plugin: Open weather",
+      "slug": "plugin-open-weather",
+      "namespace": "elizaos",
+      "description": "A plugin for Eliza that enables weather checking for any specified city using the OpenWeather API.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "open-weather",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-open-weather",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-trustgo",
+      "name": "Plugin: Trustgo",
+      "slug": "plugin-trustgo",
+      "namespace": "elizaos",
+      "description": "ElizaOS Trustgo plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "trustgo"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/TrustaLabs/plugin-trustgo",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-tts",
+      "name": "Plugin: Tts",
+      "slug": "plugin-tts",
+      "namespace": "elizaos",
+      "description": "A plugin for generating text-to-speech using FAL.ai API within the ElizaOS ecosystem, featuring automatic language detection and voice selection.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "tts",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-tts",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-twilio",
+      "name": "Plugin: Twilio",
+      "slug": "plugin-twilio",
+      "namespace": "elizaos",
+      "description": "A Twilio plugin for ElizaOS that enables SMS and voice call capabilities.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "twilio",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/boolkeys/plugin-twilio",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-xdc",
+      "name": "Plugin: Xdc",
+      "slug": "plugin-xdc",
+      "namespace": "elizaos",
+      "description": "ElizaOS Xdc plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "xdc"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/xdc-community/plugin-xdc",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-xmtp",
+      "name": "Plugin: Xmtp",
+      "slug": "plugin-xmtp",
+      "namespace": "elizaos",
+      "description": "Enables secure, decentralized, and end-to-end encrypted messaging through the XMTP protocol.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "xmtp"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-xmtp",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-polkadot",
+      "name": "Plugin: Polkadot",
+      "slug": "plugin-polkadot",
+      "namespace": "elizaos",
+      "description": "ElizaOS Polkadot plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "polkadot"
+      ],
+      "version": "0.0.3",
+      "repository": "https://github.com/Esscrypt/plugin-polkadot",
+      "source": "eliza",
+      "stars": 2,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-adapter-mongodb",
+      "name": "Adapter: Mongodb",
+      "slug": "adapter-mongodb",
+      "namespace": "elizaos",
+      "description": "Database adapter for MongoDB enabling document storage with query capabilities.",
+      "keywords": [
+        "elizaos",
+        "adapter",
+        "mongodb"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/adapter-mongodb",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-adapter-pglite",
+      "name": "Adapter: Pglite",
+      "slug": "adapter-pglite",
+      "namespace": "elizaos",
+      "description": "Lightweight PostgreSQL adapter for embedded database applications.",
+      "keywords": [
+        "elizaos",
+        "adapter",
+        "pglite"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/adapter-pglite",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-adapter-qdrant",
+      "name": "Adapter: Qdrant",
+      "slug": "adapter-qdrant",
+      "namespace": "elizaos",
+      "description": "Vector database adapter for Qdrant with similarity search capabilities.",
+      "keywords": [
+        "elizaos",
+        "adapter",
+        "qdrant"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/adapter-qdrant",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-client-auto",
+      "name": "Client: Auto",
+      "slug": "client-auto",
+      "namespace": "elizaos",
+      "description": "ElizaOS Auto client integration",
+      "keywords": [
+        "elizaos",
+        "client",
+        "auto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/client-auto",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-client-lens",
+      "name": "Client: Lens",
+      "slug": "client-lens",
+      "namespace": "elizaos",
+      "description": "A plugin designed to enhance the visibility and management of client information within a software application.",
+      "keywords": [
+        "elizaos",
+        "client",
+        "lens",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/client-lens",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-0g",
+      "name": "Plugin: 0g",
+      "slug": "plugin-0g",
+      "namespace": "elizaos",
+      "description": "A plugin for integrating ElizaOS with the Zero Gravity (0G) protocol for decentralized file storage, enabling file uploads to the 0G network.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "0g",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-0g",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-abstract",
+      "name": "Plugin: Abstract",
+      "slug": "plugin-abstract",
+      "namespace": "elizaos",
+      "description": "A plugin for seamless token transfers on the Abstract blockchain within the ElizaOS ecosystem.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "abstract",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-abstract",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-allora",
+      "name": "Plugin: Allora",
+      "slug": "plugin-allora",
+      "namespace": "elizaos",
+      "description": "Empowers Eliza agents with real-time AI inferences from the Allora Network.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "allora",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-allora",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-anthropic",
+      "name": "Plugin: Anthropic",
+      "slug": "plugin-anthropic",
+      "namespace": "elizaos",
+      "description": "ElizaOS Anthropic plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "anthropic",
+        "ai"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-anthropic",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-anyone",
+      "name": "Plugin: Anyone",
+      "slug": "plugin-anyone",
+      "namespace": "elizaos",
+      "description": "Integrates Anyone protocol proxy services into Eliza agents, enabling start/stop of Anyone client services and automatic proxy configuration.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "anyone",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-anyone",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-aptos",
+      "name": "Plugin: Aptos",
+      "slug": "plugin-aptos",
+      "namespace": "elizaos",
+      "description": "Enables seamless token transfers and wallet management on the Aptos blockchain within the ElizaOS ecosystem.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "aptos",
+        "crypto",
+        "elizaos-plugin",
+        "blockchain"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-aptos",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-asterai",
+      "name": "Plugin: Asterai",
+      "slug": "plugin-asterai",
+      "namespace": "elizaos",
+      "description": "Enables Eliza agents to interact with asterai plugins and agents, expanding their utility within the asterai ecosystem.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "asterai",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-asterai",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-bitquery",
+      "name": "Plugin: Bitquery",
+      "slug": "plugin-bitquery",
+      "namespace": "elizaos",
+      "description": "ElizaOS Bitquery Plugin (used by @ainstein_001 on X)",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "bitquery",
+        "ai",
+        "crypto"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/ChuXo/plugin-bitquery",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-bnb",
+      "name": "Plugin: Bnb",
+      "slug": "plugin-bnb",
+      "namespace": "elizaos",
+      "description": "Enables interactions with BNB Chain ecosystem including BNB Smart Chain, opBNB, and BNB Greenfield networks.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "bnb",
+        "blockchain"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-bnb",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-e2b",
+      "name": "Plugin: E2b",
+      "slug": "plugin-e2b",
+      "namespace": "elizaos",
+      "description": "ElizaOS E2b plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "e2b"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-e2b",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-ferePro",
+      "name": "Plugin: FerePro",
+      "slug": "plugin-ferePro",
+      "namespace": "elizaos",
+      "description": "A plugin for WebSocket communication with FerePro API, offering AI-driven market insights in the ElizaOS ecosystem.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "ferePro",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-ferePro",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-flow",
+      "name": "Plugin: Flow",
+      "slug": "plugin-flow",
+      "namespace": "elizaos",
+      "description": "The basic Eliza plugin for Flow Blockchain",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "flow",
+        "ai",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/fixes-world/plugin-flow",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-flow-advanced",
+      "name": "Plugin: Flow advanced",
+      "slug": "plugin-flow-advanced",
+      "namespace": "elizaos",
+      "description": "The advanced Eliza plugin for Flow Blockchain",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "flow-advanced",
+        "ai",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/fixes-world/plugin-flow-advanced",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-gelato",
+      "name": "Plugin: Gelato",
+      "slug": "plugin-gelato",
+      "namespace": "elizaos",
+      "description": "Enables smart contract interactions via Gelato Relay supporting both ERC2771 and non-ERC2771 calls on EVM chains.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "gelato"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-gelato",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-gigbot",
+      "name": "Plugin: Gigbot",
+      "slug": "plugin-gigbot",
+      "namespace": "elizaos",
+      "description": "ElizaOS Gigbot plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "gigbot",
+        "ai",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/PaymagicXYZ/plugin-gigbot",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-github",
+      "name": "Plugin: Github",
+      "slug": "plugin-github",
+      "namespace": "elizaos",
+      "description": "ElizaOS Github plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "github"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-github",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-icp",
+      "name": "Plugin: Icp",
+      "slug": "plugin-icp",
+      "namespace": "elizaos",
+      "description": "An Internet Computer Protocol (ICP) plugin for Eliza OS, enabling meme token creation, ICP canister interaction, and wallet management.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "icp",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-icp",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-iexec",
+      "name": "Plugin: Iexec",
+      "slug": "plugin-iexec",
+      "namespace": "elizaos",
+      "description": "An ElizaOS iExec Plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "iexec",
+        "ai",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/iExecBlockchainComputing/plugin-iexec",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-mbd-farcaster",
+      "name": "Plugin: Mbd farcaster",
+      "slug": "plugin-mbd-farcaster",
+      "namespace": "elizaos",
+      "description": "Eliza Plugin MBD Farcaster ",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "mbd-farcaster",
+        "social"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/developerfred/mbd-farcaster",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-morpheus",
+      "name": "Plugin: Morpheus",
+      "slug": "plugin-morpheus",
+      "namespace": "elizaos",
+      "description": "Morpheus Plugin for ElizaOS",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "morpheus",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/bowtiedbluefin/plugin-morpheus",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-nkn",
+      "name": "Plugin: Nkn",
+      "slug": "plugin-nkn",
+      "namespace": "elizaos",
+      "description": "ElizaOS Nkn plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "nkn"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/nknorg/eliza-plugin-nkn",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-notion",
+      "name": "Plugin: Notion",
+      "slug": "plugin-notion",
+      "namespace": "elizaos",
+      "description": "ElizaOS Notion plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "notion"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/tskoyo/plugin-notion",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-okto",
+      "name": "Plugin: Okto",
+      "slug": "plugin-okto",
+      "namespace": "elizaos",
+      "description": "A comprehensive integration plugin for ElizaOS that provides access to Okto's various APIs and services, enabling seamless Web3 interactions.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "okto",
+        "agents",
+        "ai",
+        "blockchain",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/okto-hq/eliza-plugin",
+      "homepage": "https://docsv2.okto.tech/docs/okto-eliza-plugin",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-omniflix",
+      "name": "Plugin: Omniflix",
+      "slug": "plugin-omniflix",
+      "namespace": "elizaos",
+      "description": "A plugin for ElizaOS that enables interaction with the OmniFlix Network blockchain, supporting bank, staking, and governance operations.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "omniflix",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-omniflix",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-pdf",
+      "name": "Plugin: Pdf",
+      "slug": "plugin-pdf",
+      "namespace": "elizaos",
+      "description": "Core Node.js plugin for Eliza OS that provides essential services and actions for file operations.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "pdf"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-pdf",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-proof-of-agent",
+      "name": "Plugin: Proof of agent",
+      "slug": "plugin-proof-of-agent",
+      "namespace": "elizaos",
+      "description": "The Proof of Agent plugin is designed to facilitate token claims using a proof of agent mechanism. It leverages trusted execution environments (TEE) and remote attestation to ensure secure and verified transactions.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "proof-of-agent",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/automata-network/elizaos-plugin-proof-of-agent",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-pyth-data",
+      "name": "Plugin: Pyth data",
+      "slug": "plugin-pyth-data",
+      "namespace": "elizaos",
+      "description": "Integrates with Pyth Network for real-time price feeds and data streams across multiple asset classes.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "pyth-data"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-pyth-data",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-quai",
+      "name": "Plugin: Quai",
+      "slug": "plugin-quai",
+      "namespace": "elizaos",
+      "description": "Enables native token transfers and interactions with the Quai blockchain for Eliza OS.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "quai",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-quai",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-recall",
+      "name": "Plugin: Recall",
+      "slug": "plugin-recall",
+      "namespace": "elizaos",
+      "description": "This plugin integrates **Recall storage** with Eliza AI agents, providing persistent memory capabilities. ",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "recall"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/recallnet/plugin-recall",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-redpill",
+      "name": "Plugin: Redpill",
+      "slug": "plugin-redpill",
+      "namespace": "elizaos",
+      "description": "ElizaOS Redpill plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "redpill"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-redpill",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-safe",
+      "name": "Plugin: Safe",
+      "slug": "plugin-safe",
+      "namespace": "elizaos",
+      "description": "Eliza plugin for Safe SDK",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "safe",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/5afe/plugin-safe",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-siwe",
+      "name": "Plugin: Siwe",
+      "slug": "plugin-siwe",
+      "namespace": "elizaos",
+      "description": "Sign-In with Ethereum (SIWE) plugin for ElizaOS",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "siwe",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/DimaKush/plugin-siwe",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-starknet",
+      "name": "Plugin: Starknet",
+      "slug": "plugin-starknet",
+      "namespace": "elizaos",
+      "description": "Core Starknet blockchain plugin for Eliza OS, enabling token operations, trading, and DeFi integrations.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "starknet",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-starknet",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-tee",
+      "name": "Plugin: Tee",
+      "slug": "plugin-tee",
+      "namespace": "elizaos",
+      "description": "A plugin for secure key derivation and remote attestation within Trusted Execution Environments (TEE).",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "tee",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-tee",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-tee-marlin",
+      "name": "Plugin: Tee marlin",
+      "slug": "plugin-tee-marlin",
+      "namespace": "elizaos",
+      "description": "A plugin for verifying agents on Eliza using Trusted Execution Environments (TEEs) through the Marlin Oyster platform.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "tee-marlin",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-tee-marlin",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-thirdweb",
+      "name": "Plugin: Thirdweb",
+      "slug": "plugin-thirdweb",
+      "namespace": "elizaos",
+      "description": "This plugin provides access to thirdweb's Nebula AI for analyzing smart contracts and blockchain data.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "thirdweb",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-thirdweb",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-trn",
+      "name": "Plugin: Trn",
+      "slug": "plugin-trn",
+      "namespace": "elizaos",
+      "description": "ElizaOS plugin for The Root Network",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "trn",
+        "ai",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/Gen3Games/plugin-trn",
+      "homepage": "https://www.therootnetwork.com/",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-vercel-ai-gateway",
+      "name": "Plugin: Vercel ai gateway",
+      "slug": "plugin-vercel-ai-gateway",
+      "namespace": "elizaos",
+      "description": "ElizaOS Vercel ai gateway plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "vercel-ai-gateway"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-vercel-ai-gateway",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-wolfram",
+      "name": "Plugin: Wolfram",
+      "slug": "plugin-wolfram",
+      "namespace": "elizaos",
+      "description": "ElizaOS Wolfram plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "wolfram"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-wolfram",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-elizaos-compchembridge",
+      "name": "Plugin: Elizaos compchembridge",
+      "slug": "plugin-elizaos-compchembridge",
+      "namespace": "elizaos",
+      "description": "ElizaOS plugin for parsing Gaussian 16 quantum chemistry logfiles into a knowledge graph",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "elizaos-compchembridge",
+        "elizaos-plugins"
+      ],
+      "version": "0.1.8",
+      "repository": "https://github.com/Mazzz-zzz/plugin-elizaos-compchembridge",
+      "source": "eliza",
+      "stars": 1,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-mattermost",
+      "name": "Plugin: Mattermost",
+      "slug": "plugin-mattermost",
+      "namespace": "elizaos",
+      "description": "ElizaOS Mattermost plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "mattermost"
+      ],
+      "version": "0.5.1",
+      "repository": "https://github.com/bealers/plugin-mattermost",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-adapter-sqlite",
+      "name": "Adapter: Sqlite",
+      "slug": "adapter-sqlite",
+      "namespace": "elizaos",
+      "description": "File-based SQL database adapter for lightweight local storage.",
+      "keywords": [
+        "elizaos",
+        "adapter",
+        "sqlite"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/adapter-sqlite",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-adapter-sqljs",
+      "name": "Adapter: Sqljs",
+      "slug": "adapter-sqljs",
+      "namespace": "elizaos",
+      "description": "ElizaOS Sqljs adapter",
+      "keywords": [
+        "elizaos",
+        "adapter",
+        "sqljs",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/adapter-sqljs",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-client-clara",
+      "name": "Client: Clara",
+      "slug": "client-clara",
+      "namespace": "elizaos",
+      "description": "Comprehensive management system for agent-to-agent interactions. It acts as a multifaceted platform, encompassing a registry, a matching engine, and a payment system.",
+      "keywords": [
+        "elizaos",
+        "client",
+        "clara",
+        "ai",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/redstone-finance/client-clara",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-client-github",
+      "name": "Client: Github",
+      "slug": "client-github",
+      "namespace": "elizaos",
+      "description": "A component of the Eliza framework designed to interact with GitHub repositories, offering functionalities like cloning, managing branches, and creating pull requests.",
+      "keywords": [
+        "elizaos",
+        "client",
+        "github",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/client-github",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-client-wechat",
+      "name": "Client: Wechat",
+      "slug": "client-wechat",
+      "namespace": "elizaos",
+      "description": "client-wechat for ElizaOS",
+      "keywords": [
+        "elizaos",
+        "client",
+        "wechat"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/aiqubits/client-wechat",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-client-xmtp",
+      "name": "Client: Xmtp",
+      "slug": "client-xmtp",
+      "namespace": "elizaos",
+      "description": "ElizaOS Xmtp client integration",
+      "keywords": [
+        "elizaos",
+        "client",
+        "xmtp"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/ephemeraHQ/client-xmtp",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-ATTPs",
+      "name": "Plugin: ATTPs",
+      "slug": "plugin-ATTPs",
+      "namespace": "elizaos",
+      "description": "The ElizaOS plugin for APRO ATTPs",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "ATTPs"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/APRO-com/plugin-ATTPs",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-action-bench",
+      "name": "Plugin: Action bench",
+      "slug": "plugin-action-bench",
+      "namespace": "elizaos",
+      "description": "Action calling benchmark for Eliza v2, including Typewriter, Relational Data and Multiverse Math.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "action-bench"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-action-bench",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-arthera",
+      "name": "Plugin: Arthera",
+      "slug": "plugin-arthera",
+      "namespace": "elizaos",
+      "description": "This plugin enables interaction with Arthera, providing actions and providers for transferring tokens and managing wallet connections.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "arthera",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-arthera",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-autonome",
+      "name": "Plugin: Autonome",
+      "slug": "plugin-autonome",
+      "namespace": "elizaos",
+      "description": "Enables launching new Eliza agents through the Autonome platform.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "autonome",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-autonome",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-avail",
+      "name": "Plugin: Avail",
+      "slug": "plugin-avail",
+      "namespace": "elizaos",
+      "description": "A plugin for interacting with the Avail DA network, enabling the transfer of AVAIL tokens and submission of data to the network.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "avail",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-avail",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-bedrock",
+      "name": "Plugin: Bedrock",
+      "slug": "plugin-bedrock",
+      "namespace": "elizaos",
+      "description": "Amazon Bedrock plugin for ElizaOS - integrates Claude, Titan, and other foundation models",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "bedrock"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-bedrock",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-bnv-me-id",
+      "name": "Plugin: Bnv me id",
+      "slug": "plugin-bnv-me-id",
+      "namespace": "elizaos",
+      "description": "AI Agents need style too",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "bnv-me-id",
+        "3d",
+        "ai",
+        "avatar",
+        "avatar-generator",
+        "crypto",
+        "elizaos-plugin",
+        "fashion",
+        "social",
+        "virtual-worlds"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/brand-new-vision/plugin-bnv-me-id",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-bootstrap",
+      "name": "Plugin: Bootstrap",
+      "slug": "plugin-bootstrap",
+      "namespace": "elizaos",
+      "description": "ElizaOS Bootstrap plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "bootstrap"
+      ],
+      "version": "0.25.9",
+      "repository": "https://github.com/elizaos-plugins/plugin-bootstrap",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-ccxt",
+      "name": "Plugin: Ccxt",
+      "slug": "plugin-ccxt",
+      "namespace": "elizaos",
+      "description": "@elizaos/plugin-ccxt enables cryptocurrency trading and arbitrage on Eliza OS using CCXT. It lets users check balances, place market/limit orders, and find arbitrage opportunities across exchanges. Configurable via API keys, it supports multiple platforms while adhering to exchange rate limits. Ideal for traders seeking automated trading solutions.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "ccxt"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/pranavjadhav1363/plugin-ccxt",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-clanker",
+      "name": "Plugin: Clanker",
+      "slug": "plugin-clanker",
+      "namespace": "elizaos",
+      "description": "ElizaOS Clanker plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "clanker"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-clanker",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-clara-twitter",
+      "name": "Plugin: Clara twitter",
+      "slug": "plugin-clara-twitter",
+      "namespace": "elizaos",
+      "description": "A plugin for Twitter/X integration, enabling automated tweet posting and context-aware content generation.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "clara-twitter",
+        "ai",
+        "elizaos-plugins",
+        "social"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/warp-contracts/plugin-clara-twitter",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-coinmarketcap",
+      "name": "Plugin: Coinmarketcap",
+      "slug": "plugin-coinmarketcap",
+      "namespace": "elizaos",
+      "description": "A plugin for Eliza that enables real-time cryptocurrency price checking using the CoinMarketCap API.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "coinmarketcap",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-coinmarketcap",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-compass",
+      "name": "Plugin: Compass",
+      "slug": "plugin-compass",
+      "namespace": "elizaos",
+      "description": "ElizaOS Compass plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "compass"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/CompassLabs/plugin-compass",
+      "source": "eliza",
+      "stars": 0,
+      "language": null,
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-conflux",
+      "name": "Plugin: Conflux",
+      "slug": "plugin-conflux",
+      "namespace": "elizaos",
+      "description": "A plugin for seamless interaction with the Conflux blockchain, supporting token transfers, cross-space bridge operations, and ConfiPump token management within the ElizaOS ecosystem.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "conflux",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-conflux",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-cosmos",
+      "name": "Plugin: Cosmos",
+      "slug": "plugin-cosmos",
+      "namespace": "elizaos",
+      "description": "This plugin facilitates interactions with Cosmos-compatible blockchains, offering actions and utilities for blockchain operations.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "cosmos",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-cosmos",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-cronoszkevm",
+      "name": "Plugin: Cronoszkevm",
+      "slug": "plugin-cronoszkevm",
+      "namespace": "elizaos",
+      "description": "A plugin for seamless token transfers on the Cronos zkEVM network, supporting ZKCRO, USDC, and ETH via Web3 and zkSync integration.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "cronoszkevm",
+        "crypto",
+        "elizaos-plugin",
+        "blockchain"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-cronoszkevm",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-debridge",
+      "name": "Plugin: Debridge",
+      "slug": "plugin-debridge",
+      "namespace": "elizaos",
+      "description": "ElizaOS plugin allowing agents to use deBridge",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "debridge",
+        "ai",
+        "defi",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/gabrielantonyxaviour/eliza-plugin-debridge",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-defillama",
+      "name": "Plugin: Defillama",
+      "slug": "plugin-defillama",
+      "namespace": "elizaos",
+      "description": "ElizaOS Defillama plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "defillama",
+        "ai"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-defillama",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-di",
+      "name": "Plugin: Di",
+      "slug": "plugin-di",
+      "namespace": "elizaos",
+      "description": "Dependency Injection Plugin for Eliza framework",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "di",
+        "ai",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/fixes-world/plugin-di",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-enso",
+      "name": "Plugin: Enso",
+      "slug": "plugin-enso",
+      "namespace": "elizaos",
+      "description": "ElizaOS Enso plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "enso",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/EnsoBuild/plugin-enso",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-fuel",
+      "name": "Plugin: Fuel",
+      "slug": "plugin-fuel",
+      "namespace": "elizaos",
+      "description": "A plugin for managing Fuel blockchain transactions through natural language commands within the ElizaOS ecosystem.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "fuel",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-fuel",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-genlayer",
+      "name": "Plugin: Genlayer",
+      "slug": "plugin-genlayer",
+      "namespace": "elizaos",
+      "description": "A plugin for the GenLayer protocol, facilitating contract deployment, interactions, and transaction management.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "genlayer",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-genlayer",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-gitbook",
+      "name": "Plugin: Gitbook",
+      "slug": "plugin-gitbook",
+      "namespace": "elizaos",
+      "description": "Enables querying and retrieving GitBook documentation within ElizaOS.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "gitbook",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-gitbook",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-gitcoin-passport",
+      "name": "Plugin: Gitcoin passport",
+      "slug": "plugin-gitcoin-passport",
+      "namespace": "elizaos",
+      "description": "Interacts with Gitcoin Passport API for verifying and managing digital identity credentials.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "gitcoin-passport"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-gitcoin-passport",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-groq",
+      "name": "Plugin: Groq",
+      "slug": "plugin-groq",
+      "namespace": "elizaos",
+      "description": "ElizaOS Groq plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "groq",
+        "ai"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-groq",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-hedera",
+      "name": "Plugin: Hedera",
+      "slug": "plugin-hedera",
+      "namespace": "elizaos",
+      "description": "ElizaOS Hedera plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "hedera"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-hedera",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-holdstation",
+      "name": "Plugin: Holdstation",
+      "slug": "plugin-holdstation",
+      "namespace": "elizaos",
+      "description": "Enables token swapping on Holdstation DEX with support for ZKsync Era and upcoming Berachain.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "holdstation",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-holdstation",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-holoworld",
+      "name": "Plugin: Holoworld",
+      "slug": "plugin-holoworld",
+      "namespace": "elizaos",
+      "description": "ElizaOS Holoworld plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "holoworld"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/mcp-dao/plugin-holoworld",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-hyperbolic",
+      "name": "Plugin: Hyperbolic",
+      "slug": "plugin-hyperbolic",
+      "namespace": "elizaos",
+      "description": "A powerful plugin for managing GPU instances on the Hyperbolic platform through Eliza AI.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "hyperbolic",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-hyperbolic",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-image-generation",
+      "name": "Plugin: Image generation",
+      "slug": "plugin-image-generation",
+      "namespace": "elizaos",
+      "description": "A plugin for generating and managing images with features like manipulation, storage integration, and optimized handling.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "image-generation",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-image-generation",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-injective",
+      "name": "Plugin: Injective",
+      "slug": "plugin-injective",
+      "namespace": "elizaos",
+      "description": "Provides comprehensive interaction with the Injective blockchain through module-based action creation.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "injective"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-injective",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-irys",
+      "name": "Plugin: Irys",
+      "slug": "plugin-irys",
+      "namespace": "elizaos",
+      "description": "A plugin for ElizaOS that integrates Irys for decentralized data storage and retrieval, enabling multi-agent collaboration.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "irys",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-irys",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-isaacx",
+      "name": "Plugin: Isaacx",
+      "slug": "plugin-isaacx",
+      "namespace": "elizaos",
+      "description": "This plugin provides integration with the Isaac X API, enabling ElizaOS Agents to reason scientifically using the latest academic research.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "isaacx",
+        "ai",
+        "elizaos-plugins",
+        "research",
+        "science"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/isaacx0/plugin-isaacx",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-lensNetwork",
+      "name": "Plugin: LensNetwork",
+      "slug": "plugin-lensNetwork",
+      "namespace": "elizaos",
+      "description": "A plugin for seamless token transfers on the Abstract testnet within the ElizaOS ecosystem, supporting both native ETH and ERC20 tokens.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "lensNetwork",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-lensNetwork",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-letzai",
+      "name": "Plugin: Letzai",
+      "slug": "plugin-letzai",
+      "namespace": "elizaos",
+      "description": "A plugin for integrating LetzAI Image Generation capabilities into the elizaos ecosystem, allowing users to generate images using LetzAI models.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "letzai",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-letzai",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-lightlink",
+      "name": "Plugin: Lightlink",
+      "slug": "plugin-lightlink",
+      "namespace": "elizaos",
+      "description": "Adds lightlink support to ElizaOS - @elizaos/plugin-lightlink",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "lightlink"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/lightlink-network/plugin-lightlink",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-linear",
+      "name": "Plugin: Linear",
+      "slug": "plugin-linear",
+      "namespace": "elizaos",
+      "description": "ElizaOS Linear plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "linear",
+        "blockchain"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-linear",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-massa",
+      "name": "Plugin: Massa",
+      "slug": "plugin-massa",
+      "namespace": "elizaos",
+      "description": "This plugin serves as the foundation for all interactions with the Massa ecosystem.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "massa",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-massa",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-membase",
+      "name": "Plugin: Membase",
+      "slug": "plugin-membase",
+      "namespace": "elizaos",
+      "description": "js sdk for membase in eliza",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "membase",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/unibaseio/plugin-membase",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-merkle",
+      "name": "Plugin: Merkle",
+      "slug": "plugin-merkle",
+      "namespace": "elizaos",
+      "description": "ElizaOS Merkle plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "merkle"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/merkle-trade/merkle-eliza-plugin",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-mina",
+      "name": "Plugin: Mina",
+      "slug": "plugin-mina",
+      "namespace": "elizaos",
+      "description": "Enables Mina blockchain interactions for token transfers, wallet management, and balance queries.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "mina"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-mina",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-morpho",
+      "name": "Plugin: Morpho",
+      "slug": "plugin-morpho",
+      "namespace": "elizaos",
+      "description": "ElizaOS Morpho plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "morpho"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/bowtiedbluefin/plugin-morpho",
+      "source": "eliza",
+      "stars": 0,
+      "language": null,
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-movement",
+      "name": "Plugin: Movement",
+      "slug": "plugin-movement",
+      "namespace": "elizaos",
+      "description": "Enables Movement Network blockchain functionality for Eliza OS agents, allowing them to send MOVE tokens and check wallet balances.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "movement",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-movement",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-multiversx",
+      "name": "Plugin: Multiversx",
+      "slug": "plugin-multiversx",
+      "namespace": "elizaos",
+      "description": "MultiversX blockchain integration plugin for Eliza OS enabling token management and transfers.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "multiversx",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-multiversx",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-okx",
+      "name": "Plugin: Okx",
+      "slug": "plugin-okx",
+      "namespace": "elizaos",
+      "description": "ElizaOS Okx plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "okx"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-okx",
+      "source": "eliza",
+      "stars": 0,
+      "language": null,
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-opacity",
+      "name": "Plugin: Opacity",
+      "slug": "plugin-opacity",
+      "namespace": "elizaos",
+      "description": "ElizaOS Opacity plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "opacity",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-opacity",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-orderly",
+      "name": "Plugin: Orderly",
+      "slug": "plugin-orderly",
+      "namespace": "elizaos",
+      "description": "ElizaOS Orderly plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "orderly",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/orderlynetwork/plugin-orderly",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-para",
+      "name": "Plugin: Para",
+      "slug": "plugin-para",
+      "namespace": "elizaos",
+      "description": "ElizaOS Para plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "para"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/aipop-fun/plugin-para",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-primus",
+      "name": "Plugin: Primus",
+      "slug": "plugin-primus",
+      "namespace": "elizaos",
+      "description": "ElizaOS Primus plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "primus",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-primus",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-pundiai-dataset",
+      "name": "Plugin: Pundiai dataset",
+      "slug": "plugin-pundiai-dataset",
+      "namespace": "elizaos",
+      "description": "Eliza’s plugin architecture ,Plugin for interacting with pundiai dataset API to fetch data",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "pundiai-dataset"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/PundiAI/plugin-pundiai-dataset",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-raiinmaker",
+      "name": "Plugin: Raiinmaker",
+      "slug": "plugin-raiinmaker",
+      "namespace": "elizaos",
+      "description": "Plugin for ElizaOS agents for validation of generated content on the Raiinmaker platform",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "raiinmaker",
+        "ai",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "v0.1.0",
+      "repository": "https://github.com/Coiin-Blockchain/plugin-raiinmaker",
+      "homepage": "https://www.raiinmaker.com",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-relay",
+      "name": "Plugin: Relay",
+      "slug": "plugin-relay",
+      "namespace": "elizaos",
+      "description": "The fastest and cheapest way to bridge & transact across chains with ElizaOS",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "relay"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-relay",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-reveel-payid",
+      "name": "Plugin: Reveel payid",
+      "slug": "plugin-reveel-payid",
+      "namespace": "elizaos",
+      "description": "ElizaOS Reveel payid plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "reveel-payid"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/r3vl/plugin-reveel-payid",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-rss3",
+      "name": "Plugin: Rss3",
+      "slug": "plugin-rss3",
+      "namespace": "elizaos",
+      "description": "A RSS3 plugin for ElizaOS.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "rss3",
+        "ai",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/rss3-network/elizaos-plugin-rss3",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-sei",
+      "name": "Plugin: Sei",
+      "slug": "plugin-sei",
+      "namespace": "elizaos",
+      "description": "Enables Eliza agents to perform actions on the Sei blockchain, including transferring SEI tokens and querying wallet balances.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "sei",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-sei",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-sgx",
+      "name": "Plugin: Sgx",
+      "slug": "plugin-sgx",
+      "namespace": "elizaos",
+      "description": "The SGX Plugin for Eliza provides Intel SGX attestation capabilities to enhance security by creating trusted execution environments for data protection.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "sgx",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-sgx",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-sonic",
+      "name": "Plugin: Sonic",
+      "slug": "plugin-sonic",
+      "namespace": "elizaos",
+      "description": "Core Sonic blockchain plugin for Eliza OS.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "sonic",
+        "crypto",
+        "elizaos-plugin",
+        "plugin-sonic"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/thopatevijay/plugin-sonic",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-spheron",
+      "name": "Plugin: Spheron",
+      "slug": "plugin-spheron",
+      "namespace": "elizaos",
+      "description": "Integrates the Spheron Protocol SDK with Eliza for deployment, escrow operations, and lease management.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "spheron",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-spheron",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-sql",
+      "name": "Plugin: Sql",
+      "slug": "plugin-sql",
+      "namespace": "elizaos",
+      "description": "ElizaOS Sql plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "sql"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-sql",
+      "source": "eliza",
+      "stars": 0,
+      "language": null,
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-squid-router",
+      "name": "Plugin: Squid router",
+      "slug": "plugin-squid-router",
+      "namespace": "elizaos",
+      "description": "Enables cross-chain token swaps between blockchains using the Squid Router protocol.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "squid-router"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-squid-router",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-stargaze",
+      "name": "Plugin: Stargaze",
+      "slug": "plugin-stargaze",
+      "namespace": "elizaos",
+      "description": "A plugin for fetching NFT data from the Stargaze API.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "stargaze",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-stargaze",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-storage-s3",
+      "name": "Plugin: Storage s3",
+      "slug": "plugin-storage-s3",
+      "namespace": "elizaos",
+      "description": "ElizaOS Storage s3 plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "storage-s3"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-storage-s3",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-tee-log",
+      "name": "Plugin: Tee log",
+      "slug": "plugin-tee-log",
+      "namespace": "elizaos",
+      "description": "Enhances Eliza's logging capabilities by providing a secure method to generate, store, and verify logs within a Trusted Execution Environment (TEE).",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "tee-log",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-tee-log",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-viction",
+      "name": "Plugin: Viction",
+      "slug": "plugin-viction",
+      "namespace": "elizaos",
+      "description": "ElizaOS Viction plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "viction"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/BuildOnViction/plugin-viction",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-video-generation",
+      "name": "Plugin: Video generation",
+      "slug": "plugin-video-generation",
+      "namespace": "elizaos",
+      "description": "A plugin for AI-powered video generation using Luma AI, enabling automated video creation from text prompts.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "video-generation",
+        "ai",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-video-generation",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-video-understanding",
+      "name": "Plugin: Video understanding",
+      "slug": "plugin-video-understanding",
+      "namespace": "elizaos",
+      "description": "ElizaOS Video understanding plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "video-understanding"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/elizaos-plugins/plugin-video-understanding",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-youtube-transcription",
+      "name": "Plugin: Youtube transcription",
+      "slug": "plugin-youtube-transcription",
+      "namespace": "elizaos",
+      "description": "ElizaOS Youtube transcription plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "youtube-transcription"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/prismadic/elizaos-plugin-youtube-transcription",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-zapper",
+      "name": "Plugin: Zapper",
+      "slug": "plugin-zapper",
+      "namespace": "elizaos",
+      "description": "Zapper plugin for Eliza OS that provides actions for querying wallet address or Farcaster profile portfolio data.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "zapper",
+        "elizaos-plugin"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/ben-dh3/plugin-zapper",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-zerion",
+      "name": "Plugin: Zerion",
+      "slug": "plugin-zerion",
+      "namespace": "elizaos",
+      "description": "A plugin for Eliza that fetches real-time wallet portfolio and position data using the Zerion API.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "zerion",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-zerion",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-zksync-era",
+      "name": "Plugin: Zksync era",
+      "slug": "plugin-zksync-era",
+      "namespace": "elizaos",
+      "description": "A plugin for integrating ZKSync Era blockchain operations, enabling token transfers and transaction management in applications.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "zksync-era",
+        "crypto",
+        "elizaos-plugin"
+      ],
+      "version": "0.25.6-alpha.1",
+      "repository": "https://github.com/elizaos-plugins/plugin-zksync-era",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-zytron",
+      "name": "Plugin: Zytron",
+      "slug": "plugin-zytron",
+      "namespace": "elizaos",
+      "description": "ElizaOS Zytron plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "zytron",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/zypher-network/plugin-zytron",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-kudo",
+      "name": "Plugin: Kudo",
+      "slug": "plugin-kudo",
+      "namespace": "elizaos",
+      "description": "ElizaOS Kudo plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "kudo",
+        "ai",
+        "crypto",
+        "elizaos-plugins"
+      ],
+      "version": "0.1.14",
+      "repository": "https://github.com/Kudo-Archi/plugin-kudo",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-connections",
+      "name": "Plugin: Connections",
+      "slug": "plugin-connections",
+      "namespace": "elizaos",
+      "description": "ElizaOS Connections plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "connections",
+        "elizaos-plugins"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/mascotai/plugin-connections",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-nuggets",
+      "name": "Plugin: Nuggets",
+      "slug": "plugin-nuggets",
+      "namespace": "elizaos",
+      "description": "ElizaOS Nuggets plugin",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "nuggets",
+        "elizaos-plugins"
+      ],
+      "version": "0.1.0",
+      "repository": "https://github.com/NuggetsLtd/eliza-plugin-nuggets",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": false
+    },
+    {
+      "id": "eliza-plugin-bonsai",
+      "name": "Plugin: Bonsai",
+      "slug": "plugin-bonsai",
+      "namespace": "elizaos",
+      "description": "This package allows any ElizaOS agent to pay for content generation on Bonsai.",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "bonsai",
+        "crypto",
+        "elizaos-plugins",
+        "genai",
+        "x402"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/onbonsai/plugin-bonsai",
+      "homepage": "https://onbonsai.gitbook.io/docs/elizaos/plugin-bonsai",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    },
+    {
+      "id": "eliza-plugin-tokenmetrics",
+      "name": "Plugin: Tokenmetrics",
+      "slug": "plugin-tokenmetrics",
+      "namespace": "elizaos",
+      "description": "This plugin provides comprehensive cryptocurrency analysis across 20 endpoints from Token Metrics API into the ElizaOS framework, enabling AI agents to provide crypto insights",
+      "keywords": [
+        "elizaos",
+        "plugin",
+        "tokenmetrics"
+      ],
+      "version": "latest",
+      "repository": "https://github.com/token-metrics/plugin-tokenmetrics",
+      "homepage": "https://developers.tokenmetrics.com/docs/getting-started",
+      "source": "eliza",
+      "stars": 0,
+      "language": "TypeScript",
+      "supportsV1": true
+    }
+  ]
+}
