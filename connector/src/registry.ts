@@ -2,7 +2,7 @@
  * MCP Registry Module
  * 
  * Loads servers from:
- * - Mcp dump (data/mcpServers.json)
+ * - MCP refined sources (data/refined: npxServers.json, httpServers.json, dockerServers.json, ghcrServers.json)
  * - GOAT plugins (data/goatPlugins.json)
  * - ElizaOS plugins (data/elizaPlugins.json)
  * - Internal tools (internal.ts)
@@ -293,17 +293,71 @@ interface PluginRegistryData {
 
 
 /**
- * Load MCP servers from static JSON file
+ * Load NPX MCP servers from refined JSON file
  */
-async function loadMcpServers(): Promise<RegistryData | null> {
-  const filePath = path.resolve(__dirname, "../../../data/mcpServers.json");
+async function loadNpxServers(): Promise<RegistryData | null> {
+  const filePath = path.resolve(__dirname, "../data/refined/npxServers.json");
   try {
     const raw = await fs.readFile(filePath, "utf8");
     return JSON.parse(raw) as RegistryData;
   } catch (err: unknown) {
     const error = err as NodeJS.ErrnoException;
     if (error.code === "ENOENT") {
-      console.warn(`[registry] mcpServers.json not found at: ${filePath}`);
+      console.warn(`[registry] npxServers.json not found at: ${filePath}`);
+      return null;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Load HTTP/SSE MCP servers from refined JSON file
+ */
+async function loadHttpServers(): Promise<RegistryData | null> {
+  const filePath = path.resolve(__dirname, "../data/refined/httpServers.json");
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    return JSON.parse(raw) as RegistryData;
+  } catch (err: unknown) {
+    const error = err as NodeJS.ErrnoException;
+    if (error.code === "ENOENT") {
+      console.warn(`[registry] httpServers.json not found at: ${filePath}`);
+      return null;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Load external Docker MCP servers from refined JSON file
+ */
+async function loadDockerServers(): Promise<RegistryData | null> {
+  const filePath = path.resolve(__dirname, "../data/refined/dockerServers.json");
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    return JSON.parse(raw) as RegistryData;
+  } catch (err: unknown) {
+    const error = err as NodeJS.ErrnoException;
+    if (error.code === "ENOENT") {
+      console.warn(`[registry] dockerServers.json not found at: ${filePath}`);
+      return null;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Load GHCR containerized MCP servers from refined JSON file
+ */
+async function loadGhcrServers(): Promise<RegistryData | null> {
+  const filePath = path.resolve(__dirname, "../data/refined/ghcrServers.json");
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    return JSON.parse(raw) as RegistryData;
+  } catch (err: unknown) {
+    const error = err as NodeJS.ErrnoException;
+    if (error.code === "ENOENT") {
+      console.warn(`[registry] ghcrServers.json not found at: ${filePath}`);
       return null;
     }
     throw err;
@@ -567,8 +621,14 @@ export async function getServerSpawnConfig(serverId: string): Promise<{
   image?: string;
   remoteUrl?: string;
 } | null> {
-  // Look up server in registry
-  const server = await getServerByRegistryId(serverId);
+  // Look up server in registry (by ID or Slug)
+  let server = await getServerByRegistryId(serverId);
+
+  if (!server) {
+    // Try finding by slug
+    const registry = await getRegistry();
+    server = registry.find(s => s.slug === serverId);
+  }
 
   if (!server) {
     console.warn(`[registry] Server not found: ${serverId}`);
@@ -638,19 +698,37 @@ export async function getServerSpawnConfig(serverId: string): Promise<{
  */
 export async function getRegistry(): Promise<UnifiedServerRecord[]> {
   if (!REGISTRY) {
-    const [mcpData, goatData, elizaData] = await Promise.all([
-      loadMcpServers(),
+    const [npxData, httpData, dockerData, ghcrData, goatData, elizaData] = await Promise.all([
+      loadNpxServers(),
+      loadHttpServers(),
+      loadDockerServers(),
+      loadGhcrServers(),
       loadGoatPlugins(),
       loadElizaPlugins(),
     ]);
     const internalServers = getInternalServers();
 
-    REGISTRY = normalizeRegistry(mcpData, goatData, elizaData, internalServers);
+    // Combine all MCP sources into one array
+    const allMcpServers: McpServer[] = [];
+    if (npxData?.servers) allMcpServers.push(...npxData.servers);
+    if (httpData?.servers) allMcpServers.push(...httpData.servers);
+    if (dockerData?.servers) allMcpServers.push(...dockerData.servers);
+    if (ghcrData?.servers) allMcpServers.push(...ghcrData.servers);
+
+    // Create combined MCP data
+    const combinedMcpData: RegistryData = {
+      sources: ["npx", "http", "docker", "ghcr"],
+      updatedAt: new Date().toISOString(),
+      count: allMcpServers.length,
+      servers: allMcpServers,
+    };
+
+    REGISTRY = normalizeRegistry(combinedMcpData, goatData, elizaData, internalServers);
     REGISTRY_LOADED_AT = new Date().toISOString();
 
     console.log(
       `[registry] Loaded ${REGISTRY.length} servers ` +
-      `(${mcpData?.count || 0} mcp + ${goatData?.count || 0} goat + ${elizaData?.count || 0} eliza + ${internalServers.length} internal)`
+      `(${npxData?.count || 0} npx + ${httpData?.count || 0} http + ${dockerData?.count || 0} docker + ${ghcrData?.count || 0} ghcr + ${goatData?.count || 0} goat + ${elizaData?.count || 0} eliza + ${internalServers.length} internal)`
     );
   }
   return REGISTRY;

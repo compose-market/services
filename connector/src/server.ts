@@ -68,10 +68,14 @@ const corsOptions = {
   allowedHeaders: [
     'Content-Type',
     'Authorization',
+    'X-Payment',                         // x402 core payment header
     'X-Payment-Data',                    // x402 payment data
     'X-Payment-Signature',               // x402 signature
     'X-Payment-Timestamp',               // x402 timestamp
     'X-Requested-With',
+    'x-session-active',                  // Session management
+    'x-session-budget-remaining',        // Session budget
+    'access-control-expose-headers',     // CORS header passthrough (thirdweb quirk)
   ],
   exposedHeaders: [
     'X-Payment-Required',                // x402 challenge header
@@ -137,7 +141,7 @@ app.get(
     const { id } = req.params;
 
     const { getServerSpawnConfig } = await import("./registry.js");
-    const config = getServerSpawnConfig(id);
+    const config = await getServerSpawnConfig(id);
 
     if (!config) {
       res.status(404).json({
