@@ -22,6 +22,25 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Resolve data directory - works for both dev (src/) and prod (dist/connector/src/)
+// In dev: __dirname = connector/src -> ../data = connector/data
+// In prod: __dirname = connector/dist/connector/src -> ../../../data = connector/data
+function resolveDataDir(): string {
+  // Try relative path first (works in dev)
+  const devPath = path.resolve(__dirname, "../data");
+  // For production build, go up from dist/connector/src to connector root, then data
+  const prodPath = path.resolve(__dirname, "../../../data");
+  // Check which exists by looking for refined subdirectory
+  try {
+    require("fs").accessSync(path.join(devPath, "refined"));
+    return devPath;
+  } catch {
+    return prodPath;
+  }
+}
+const DATA_DIR = resolveDataDir();
+
+
 /** Mcp MCP server from the JSON dump */
 export interface McpServer {
   id: string;
@@ -190,24 +209,58 @@ function normalizeToCanonicalKey(slug: string, origin: ServerOrigin): string {
 }
 
 /**
- * Deduplicate records by canonical key.
+ * Clean a name/slug to a normalized format for registryId.
+ * Matches logic from mcp/scripts/build-images.ts (lines 604-629).
+ * 
+ * Input: "Context7 MCP by renCosta2025 | Glama"
+ * Output: "context7"
+ * 
+ * Input: "@modelcontextprotocol/server-github"
+ * Output: "github"
+ */
+function cleanSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/^@[\w-]+\//, '')                     // Remove npm scope @scope/
+    .replace(/^model-?context-?protocol[/-]?/gi, '') // Remove "modelcontextprotocol" prefix
+    .replace(/^io-github-[\w-]*-?/gi, '')          // Remove "io-github-*" prefix
+    .replace(/^io-/gi, '')                         // Remove "io-" prefix
+    .replace(/^github-/gi, '')                     // Remove "github-" prefix  
+    .replace(/\s*mcp\s*server\s*/gi, '')           // Remove "MCP Server"
+    .replace(/\s*server\s*/gi, '')                 // Remove "Server"
+    .replace(/\s*mcp\s*/gi, '')                    // Remove "MCP"
+    .replace(/-mcp$/gi, '')                        // Remove trailing "-mcp"
+    .replace(/^mcp-/gi, '')                        // Remove leading "mcp-"
+    .replace(/-official$/gi, '')                   // Remove trailing "-official"
+    .replace(/^official-/gi, '')                   // Remove leading "official-"
+    .replace(/\s*by\s+[\w-]+/gi, '')               // Remove "by author"
+    .replace(/\s*\|\s*.+$/g, '')                   // Remove "| Glama" etc
+    .replace(/^goat[:-]/, '')                      // Remove goat prefix
+    .replace(/^eliza[:-]/, '')                     // Remove eliza prefix
+    .replace(/[^a-z0-9-]/g, '-')                   // Special chars to dashes
+    .replace(/--+/g, '-')                          // Double dashes to single
+    .replace(/^-+|-+$/g, '');                      // Trim dashes
+}
+
+/**
+ * Deduplicate records by registryId (after cleanSlug normalization).
  * Merges metadata and keeps the highest-priority source as primary.
  */
 function deduplicateRecords(records: UnifiedServerRecord[]): UnifiedServerRecord[] {
-  const byCanonicalKey = new Map<string, UnifiedServerRecord[]>();
+  const byRegistryId = new Map<string, UnifiedServerRecord[]>();
 
-  // Group by canonical key
+  // Group by registryId (which is now the clean slug format: origin:cleanSlug)
   for (const record of records) {
-    const key = record.canonicalKey;
-    const existing = byCanonicalKey.get(key) || [];
+    const key = record.registryId;
+    const existing = byRegistryId.get(key) || [];
     existing.push(record);
-    byCanonicalKey.set(key, existing);
+    byRegistryId.set(key, existing);
   }
 
   const deduplicated: UnifiedServerRecord[] = [];
   let mergedCount = 0;
 
-  for (const [key, group] of byCanonicalKey) {
+  for (const [key, group] of byRegistryId) {
     if (group.length === 1) {
       // No duplicates
       deduplicated.push(group[0]);
@@ -296,7 +349,7 @@ interface PluginRegistryData {
  * Load NPX MCP servers from refined JSON file
  */
 async function loadNpxServers(): Promise<RegistryData | null> {
-  const filePath = path.resolve(__dirname, "../data/refined/npxServers.json");
+  const filePath = path.resolve(DATA_DIR, "refined/npxServers.json");
   try {
     const raw = await fs.readFile(filePath, "utf8");
     return JSON.parse(raw) as RegistryData;
@@ -314,7 +367,7 @@ async function loadNpxServers(): Promise<RegistryData | null> {
  * Load HTTP/SSE MCP servers from refined JSON file
  */
 async function loadHttpServers(): Promise<RegistryData | null> {
-  const filePath = path.resolve(__dirname, "../data/refined/httpServers.json");
+  const filePath = path.resolve(DATA_DIR, "refined/httpServers.json");
   try {
     const raw = await fs.readFile(filePath, "utf8");
     return JSON.parse(raw) as RegistryData;
@@ -332,7 +385,7 @@ async function loadHttpServers(): Promise<RegistryData | null> {
  * Load external Docker MCP servers from refined JSON file
  */
 async function loadDockerServers(): Promise<RegistryData | null> {
-  const filePath = path.resolve(__dirname, "../data/refined/dockerServers.json");
+  const filePath = path.resolve(DATA_DIR, "refined/dockerServers.json");
   try {
     const raw = await fs.readFile(filePath, "utf8");
     return JSON.parse(raw) as RegistryData;
@@ -350,7 +403,7 @@ async function loadDockerServers(): Promise<RegistryData | null> {
  * Load GHCR containerized MCP servers from refined JSON file
  */
 async function loadGhcrServers(): Promise<RegistryData | null> {
-  const filePath = path.resolve(__dirname, "../data/refined/ghcrServers.json");
+  const filePath = path.resolve(DATA_DIR, "refined/ghcrServers.json");
   try {
     const raw = await fs.readFile(filePath, "utf8");
     return JSON.parse(raw) as RegistryData;
@@ -424,12 +477,12 @@ function normalizeRegistry(
       const isExecutable = EXECUTABLE_GOAT_PLUGINS.has(canonicalKey);
 
       records.push({
-        registryId: `goat:${p.id}`,
+        registryId: `goat:${cleanSlug(p.name)}`,
         origin: "goat",
         type: "plugin",
         sources: ["goat"],
         canonicalKey,
-        name: p.name,
+        name: cleanSlug(p.name),
         namespace: p.namespace,
         slug: p.slug,
         description: p.description,
@@ -458,12 +511,12 @@ function normalizeRegistry(
       else if (p.keywords.includes("ai") || p.keywords.includes("llm")) category = "ai";
 
       records.push({
-        registryId: `eliza:${p.id}`,
+        registryId: `eliza:${cleanSlug(p.name)}`,
         origin: "eliza",
         type: "plugin",
         sources: ["eliza"],
         canonicalKey,
-        name: p.name,
+        name: cleanSlug(p.name),
         namespace: p.namespace,
         slug: p.slug,
         description: p.description,
@@ -529,12 +582,12 @@ function normalizeRegistry(
       const isExecutable = true;
 
       records.push({
-        registryId: `mcp:${s.id}`,
+        registryId: `mcp:${cleanSlug(s.name || s.slug || s.id)}`,
         origin: "mcp",
         type: "plugin",
         sources: ["mcp"],  // All MCP servers are treated as MCP origin
         canonicalKey,
-        name: s.name || s.slug || s.id,
+        name: cleanSlug(s.name || s.slug || s.id),
         namespace: s.namespace,
         slug: s.slug,
         description: desc,
@@ -822,12 +875,33 @@ export async function searchRegistry(query: string): Promise<UnifiedServerRecord
 
 /**
  * Get a server by registry ID
+ * Supports both prefixed (mcp:slug) and unprefixed (slug) lookups for flexibility
  */
 export async function getServerByRegistryId(
   registryId: string
 ): Promise<UnifiedServerRecord | undefined> {
   const registry = await getRegistry();
-  return registry.find((s) => s.registryId === registryId);
+
+  // First try exact match
+  let server = registry.find((s) => s.registryId === registryId);
+  if (server) return server;
+
+  // If not found and no prefix, try with common origin prefixes
+  if (!registryId.includes(":")) {
+    // Try mcp:{id} (most common for agent tool lookup)
+    server = registry.find((s) => s.registryId === `mcp:${registryId}`);
+    if (server) return server;
+
+    // Try goat:{id}
+    server = registry.find((s) => s.registryId === `goat:${registryId}`);
+    if (server) return server;
+
+    // Try eliza:{id}
+    server = registry.find((s) => s.registryId === `eliza:${registryId}`);
+    if (server) return server;
+  }
+
+  return undefined;
 }
 
 /**
@@ -979,10 +1053,10 @@ export function createRegistryRouter(): express.Router {
         servers = servers.filter((s) => s.available);
       }
 
-      // Pagination
+      // Pagination - no hard cap, return all if limit not specified
       const offsetNum = parseInt(offset as string, 10) || 0;
-      const limitNum = Math.min(parseInt(limit as string, 10) || 50, 200);
-      const paginated = servers.slice(offsetNum, offsetNum + limitNum);
+      const limitNum = parseInt(limit as string, 10) || 0;
+      const paginated = limitNum > 0 ? servers.slice(offsetNum, offsetNum + limitNum) : servers.slice(offsetNum);
 
       res.json({
         total: servers.length,
@@ -1009,12 +1083,12 @@ export function createRegistryRouter(): express.Router {
 
     try {
       const results = await searchRegistry(q);
-      const limit = Math.min(parseInt(req.query.limit as string, 10) || 50, 200);
+      const limit = parseInt(req.query.limit as string, 10) || 0;
 
       res.json({
         query: q,
         total: results.length,
-        servers: results.slice(0, limit),
+        servers: limit > 0 ? results.slice(0, limit) : results,
       });
     } catch (err) {
       console.error("[registry] /servers/search error:", err);
