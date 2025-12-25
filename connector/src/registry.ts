@@ -663,6 +663,81 @@ function generateTags(name: string, namespace: string, description: string): str
 }
 
 /**
+ * Resolve a server by flexible ID matching
+ * Tries multiple strategies to find a server:
+ * 1. Exact registryId match
+ * 2. With mcp: prefix added
+ * 3. By slug field
+ * 4. By cleanSlug of name
+ * 5. Partial slug match (e.g., "perplexity" matches "perplexity-web-search")
+ */
+export async function resolveServerByFlexibleId(
+  serverId: string
+): Promise<UnifiedServerRecord | undefined> {
+  const registry = await getRegistry();
+  const normalizedInput = serverId.toLowerCase().replace(/^mcp[:-]/, '');
+
+  // 1. Exact registryId match
+  let server = registry.find(s => s.registryId === serverId);
+  if (server) {
+    console.log(`[registry] Resolved "${serverId}" by exact registryId`);
+    return server;
+  }
+
+  // 2. Try with mcp: prefix
+  server = registry.find(s => s.registryId === `mcp:${serverId}`);
+  if (server) {
+    console.log(`[registry] Resolved "${serverId}" by mcp: prefix -> ${server.registryId}`);
+    return server;
+  }
+
+  // 3. By slug field (exact)
+  server = registry.find(s => s.slug === serverId || s.slug === normalizedInput);
+  if (server) {
+    console.log(`[registry] Resolved "${serverId}" by slug -> ${server.registryId}`);
+    return server;
+  }
+
+  // 4. By name (cleanSlug comparison)
+  server = registry.find(s => s.name === normalizedInput || cleanSlug(s.name) === normalizedInput);
+  if (server) {
+    console.log(`[registry] Resolved "${serverId}" by name/cleanSlug -> ${server.registryId}`);
+    return server;
+  }
+
+  // 5. Partial slug match (e.g., "perplexity" matches "perplexity-web-search")
+  // Prefer shorter slugs for more specific matches
+  const partialMatches = registry
+    .filter(s => s.slug.includes(normalizedInput) || s.name.includes(normalizedInput))
+    .sort((a, b) => a.slug.length - b.slug.length);
+  if (partialMatches.length > 0) {
+    server = partialMatches[0];
+    console.log(`[registry] Resolved "${serverId}" by partial match -> ${server.registryId} (${partialMatches.length} candidates)`);
+    return server;
+  }
+
+  // 6. Try with common suffixes removed/added
+  const variations = [
+    `${normalizedInput}-web-search`,
+    `${normalizedInput}-search`,
+    `${normalizedInput}-mcp`,
+    normalizedInput.replace(/-web-search$/, ''),
+    normalizedInput.replace(/-search$/, ''),
+    normalizedInput.replace(/-mcp$/, ''),
+  ];
+  for (const variation of variations) {
+    server = registry.find(s => s.slug === variation || s.name === variation);
+    if (server) {
+      console.log(`[registry] Resolved "${serverId}" by variation "${variation}" -> ${server.registryId}`);
+      return server;
+    }
+  }
+
+  console.warn(`[registry] Could not resolve server: ${serverId}`);
+  return undefined;
+}
+
+/**
  * Get spawn configuration for an MCP server
  * Dynamically looks up server in registry and returns spawn config based on transport type
  */
@@ -674,17 +749,11 @@ export async function getServerSpawnConfig(serverId: string): Promise<{
   image?: string;
   remoteUrl?: string;
 } | null> {
-  // Look up server in registry (by ID or Slug)
-  let server = await getServerByRegistryId(serverId);
+  // Use flexible resolution instead of direct lookup
+  const server = await resolveServerByFlexibleId(serverId);
 
   if (!server) {
-    // Try finding by slug
-    const registry = await getRegistry();
-    server = registry.find(s => s.slug === serverId);
-  }
-
-  if (!server) {
-    console.warn(`[registry] Server not found: ${serverId}`);
+    console.warn(`[registry] Server not found after flexible resolution: ${serverId}`);
     return null;
   }
 
@@ -875,33 +944,13 @@ export async function searchRegistry(query: string): Promise<UnifiedServerRecord
 
 /**
  * Get a server by registry ID
- * Supports both prefixed (mcp:slug) and unprefixed (slug) lookups for flexibility
+ * Uses flexible resolution to handle various naming patterns
  */
 export async function getServerByRegistryId(
   registryId: string
 ): Promise<UnifiedServerRecord | undefined> {
-  const registry = await getRegistry();
-
-  // First try exact match
-  let server = registry.find((s) => s.registryId === registryId);
-  if (server) return server;
-
-  // If not found and no prefix, try with common origin prefixes
-  if (!registryId.includes(":")) {
-    // Try mcp:{id} (most common for agent tool lookup)
-    server = registry.find((s) => s.registryId === `mcp:${registryId}`);
-    if (server) return server;
-
-    // Try goat:{id}
-    server = registry.find((s) => s.registryId === `goat:${registryId}`);
-    if (server) return server;
-
-    // Try eliza:{id}
-    server = registry.find((s) => s.registryId === `eliza:${registryId}`);
-    if (server) return server;
-  }
-
-  return undefined;
+  // Use the flexible resolution function for consistent lookup
+  return await resolveServerByFlexibleId(registryId);
 }
 
 /**
@@ -978,6 +1027,7 @@ export function createRegistryRouter(): express.Router {
       }
 
       // Filter by origin (supports comma-separated list)
+      // By default, exclude internal servers unless explicitly requested
       if (typeof origin === "string" && origin) {
         const validOrigins: ServerOrigin[] = ["mcp", "internal", "goat", "eliza"];
         const origins = origin.split(",").filter((o): o is ServerOrigin =>
@@ -986,6 +1036,9 @@ export function createRegistryRouter(): express.Router {
         if (origins.length > 0) {
           servers = servers.filter((s) => origins.includes(s.origin));
         }
+      } else {
+        // Default: exclude internal servers from public listings
+        servers = servers.filter((s) => s.origin !== "internal");
       }
 
       // Filter by category
@@ -1033,6 +1086,7 @@ export function createRegistryRouter(): express.Router {
       }
 
       // Filter by origin (supports comma-separated list)
+      // By default, exclude internal servers unless explicitly requested
       if (typeof origin === "string" && origin) {
         const validOrigins: ServerOrigin[] = ["mcp", "internal", "goat", "eliza"];
         const origins = origin.split(",").filter((o): o is ServerOrigin =>
@@ -1041,6 +1095,9 @@ export function createRegistryRouter(): express.Router {
         if (origins.length > 0) {
           servers = servers.filter((s) => origins.includes(s.origin));
         }
+      } else {
+        // Default: exclude internal servers from public listings
+        servers = servers.filter((s) => s.origin !== "internal");
       }
 
       // Filter by category
