@@ -278,9 +278,17 @@ app.post(
     try {
       // Use the new /mcp/servers/:serverId/tools/:toolName endpoint
       const toolName = parseResult.data.tool;
+
+      // Forward internal bypass header for nested calls
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const internalSecret = req.headers["x-manowar-internal"] as string | undefined;
+      if (internalSecret) {
+        headers["x-manowar-internal"] = internalSecret;
+      }
+
       const response = await fetch(`${MCP_SERVER_URL}/mcp/servers/${encodeURIComponent(slug)}/tools/${encodeURIComponent(toolName)}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ args: parseResult.data.args }),
       });
       const data = await response.json();
@@ -327,11 +335,17 @@ app.post(
     }
     console.log(`[x402] Payment verified for mcp/spawn`);
 
-    // Proxy to MCP server
+    // Proxy to MCP server - forward internal bypass header for nested calls
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const internalSecret = req.headers["x-manowar-internal"] as string | undefined;
+      if (internalSecret) {
+        headers["x-manowar-internal"] = internalSecret;
+      }
+
       const response = await fetch(`${MCP_SERVER_URL}/mcp/spawn`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(req.body),
       });
       const data = await response.json();

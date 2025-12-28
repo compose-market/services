@@ -139,7 +139,7 @@ export interface UnifiedServerRecord {
   alternateIds?: string[];
   // Transport and containerization support
   /** Transport type: stdio (local npm/pypi), http (remote SSE/streamable), docker (containerized) */
-  transport?: "stdio" | "http" | "docker";
+  transport?: "stdio" | "http" | "docker" | "npx";
   /** Docker image name (if containerized) */
   image?: string;
   /** Remote URL (if HTTP/SSE server) */
@@ -742,12 +742,13 @@ export async function resolveServerByFlexibleId(
  * Dynamically looks up server in registry and returns spawn config based on transport type
  */
 export async function getServerSpawnConfig(serverId: string): Promise<{
-  transport: "stdio" | "http" | "docker";
+  transport: "stdio" | "http" | "docker" | "npx";
   command?: string;
   args?: string[];
   env?: Record<string, string>;
   image?: string;
   remoteUrl?: string;
+  package?: string;
 } | null> {
   // Use flexible resolution instead of direct lookup
   const server = await resolveServerByFlexibleId(serverId);
@@ -808,9 +809,8 @@ export async function getServerSpawnConfig(serverId: string): Promise<{
   }
 
   return {
-    transport: "stdio",
-    command: "npx",
-    args: ["-y", packageName],
+    transport: "npx",
+    package: packageName,
     env: {},
   };
 }
