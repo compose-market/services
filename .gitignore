@@ -6,6 +6,7 @@
 /exporter/dist
 /sandbox/data
 /sandbox/dist
+/socket/dist
 /connector/scripts/test-commands.ts
 /connector/scripts/test-extraction.ts
 /connector/scripts/README.md
