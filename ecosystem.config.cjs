@@ -59,5 +59,21 @@ module.exports = {
             out_file: "/home/ubuntu/logs/exporter-out.log",
             log_date_format: "YYYY-MM-DD HH:mm:ss Z",
         },
+        {
+            name: "socket",
+            script: "socket/dist/socket/src/server.js",
+            cwd: "/home/ubuntu/services",
+            instances: 1,
+            autorestart: true,
+            watch: false,
+            max_memory_restart: "500M",
+            env: {
+                NODE_ENV: "production",
+                SOCKET_PORT: 4004,
+            },
+            error_file: "/home/ubuntu/logs/socket-error.log",
+            out_file: "/home/ubuntu/logs/socket-out.log",
+            log_date_format: "YYYY-MM-DD HH:mm:ss Z",
+        },
     ],
 };
