@@ -68,18 +68,17 @@ const corsOptions = {
   allowedHeaders: [
     'Content-Type',
     'Authorization',
-    'X-Payment',                         // x402 core payment header
-    'X-Payment-Data',                    // x402 payment data
-    'X-Payment-Signature',               // x402 signature
-    'X-Payment-Timestamp',               // x402 timestamp
+    'PAYMENT-SIGNATURE',                 // x402 V2 payment header
+    'payment-signature',                 // x402 V2 payment header (lowercase)
     'X-Requested-With',
     'x-session-active',                  // Session management
     'x-session-budget-remaining',        // Session budget
     'access-control-expose-headers',     // CORS header passthrough (thirdweb quirk)
   ],
   exposedHeaders: [
-    'X-Payment-Required',                // x402 challenge header
-    'X-Payment-Challenge',               // x402 challenge data
+    'Payment-Required',                  // x402 V2 challenge header
+    'PAYMENT-RESPONSE',                  // x402 V2 response header
+    'payment-response',                  // x402 V2 response header (lowercase)
   ],
   maxAge: 86400,                        // Cache preflight for 24 hours (in seconds)
 };
@@ -138,7 +137,7 @@ app.get("/health", (_req: Request, res: Response) => {
 app.get(
   "/registry/servers/:id/spawn",
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const { getServerSpawnConfig } = await import("./registry.js");
     const config = await getServerSpawnConfig(id);
@@ -216,7 +215,7 @@ app.get(
 app.get(
   "/mcp/servers/:slug/tools",
   asyncHandler(async (req: Request, res: Response) => {
-    const { slug } = req.params;
+    const slug = req.params.slug as string;
     try {
       const response = await fetch(`${MCP_SERVER_URL}/mcp/servers/${encodeURIComponent(slug)}/tools`);
       const data = await response.json();
@@ -242,7 +241,7 @@ const McpCallToolSchema = z.object({
 app.post(
   "/mcp/servers/:slug/call",
   asyncHandler(async (req: Request, res: Response) => {
-    const { slug } = req.params;
+    const slug = req.params.slug as string;
 
     // x402 Payment Verification - ALWAYS required, no session bypass
     const { paymentData } = extractPaymentInfo(
@@ -386,7 +385,7 @@ app.get(
 app.get(
   "/mcp/sessions/:sessionId/tools",
   asyncHandler(async (req: Request, res: Response) => {
-    const { sessionId } = req.params;
+    const sessionId = req.params.sessionId as string;
     try {
       const response = await fetch(`${MCP_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}/tools`);
       const data = await response.json();
@@ -407,7 +406,7 @@ app.get(
 app.post(
   "/mcp/sessions/:sessionId/execute",
   asyncHandler(async (req: Request, res: Response) => {
-    const { sessionId } = req.params;
+    const sessionId = req.params.sessionId as string;
 
     // x402 Payment Verification
     const { paymentData } = extractPaymentInfo(
@@ -456,7 +455,7 @@ app.post(
 app.delete(
   "/mcp/sessions/:sessionId",
   asyncHandler(async (req: Request, res: Response) => {
-    const { sessionId } = req.params;
+    const sessionId = req.params.sessionId as string;
     try {
       const response = await fetch(`${MCP_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}`, {
         method: "DELETE",
@@ -640,7 +639,7 @@ app.get(
 app.get(
   "/plugins/:pluginId/tools",
   asyncHandler(async (req: Request, res: Response) => {
-    const { pluginId } = req.params;
+    const pluginId = req.params.pluginId as string;
     try {
       const response = await fetch(`${MCP_SERVER_URL}/goat/plugins/${encodeURIComponent(pluginId)}`);
       const data = await response.json();
@@ -666,7 +665,7 @@ const ExecuteToolSchema = z.object({
 app.post(
   "/plugins/:pluginId/execute",
   asyncHandler(async (req: Request, res: Response) => {
-    const { pluginId } = req.params;
+    const pluginId = req.params.pluginId as string;
 
     // x402 Payment Verification - ALWAYS required, no session bypass
     const { paymentData } = extractPaymentInfo(
@@ -778,7 +777,7 @@ app.get(
 app.get(
   "/eliza/plugins/:pluginId",
   asyncHandler(async (req: Request, res: Response) => {
-    const { pluginId } = req.params;
+    const pluginId = req.params.pluginId as string;
     try {
       const response = await fetch(`${MCP_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}`);
       const data = await response.json();
@@ -800,7 +799,7 @@ app.get(
 app.get(
   "/eliza/plugins/:pluginId/actions",
   asyncHandler(async (req: Request, res: Response) => {
-    const { pluginId } = req.params;
+    const pluginId = req.params.pluginId as string;
     try {
       const response = await fetch(`${MCP_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions`);
       const data = await response.json();
@@ -821,7 +820,8 @@ app.get(
 app.get(
   "/eliza/plugins/:pluginId/actions/:actionName",
   asyncHandler(async (req: Request, res: Response) => {
-    const { pluginId, actionName } = req.params;
+    const pluginId = req.params.pluginId as string;
+    const actionName = req.params.actionName as string;
     try {
       const response = await fetch(
         `${MCP_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions/${encodeURIComponent(actionName)}`
@@ -844,7 +844,8 @@ app.get(
 app.get(
   "/eliza/plugins/:pluginId/actions/:actionName/example",
   asyncHandler(async (req: Request, res: Response) => {
-    const { pluginId, actionName } = req.params;
+    const pluginId = req.params.pluginId as string;
+    const actionName = req.params.actionName as string;
     try {
       const response = await fetch(
         `${MCP_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions/${encodeURIComponent(actionName)}/example`
@@ -878,7 +879,7 @@ const ElizaExecuteSchema = z.object({
 app.post(
   "/eliza/plugins/:pluginId/execute",
   asyncHandler(async (req: Request, res: Response) => {
-    const { pluginId } = req.params;
+    const pluginId = req.params.pluginId as string;
 
     // x402 Payment Verification - ALWAYS required, no session bypass
     const { paymentData } = extractPaymentInfo(
