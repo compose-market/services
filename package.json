@@ -20,6 +20,7 @@
         "start:socket": "node socket/dist/src/server.js"
     },
     "dependencies": {
+        "@crypto.com/facilitator-client": "^1.0.4",
         "@google/genai": "^1.38.0",
         "@modelcontextprotocol/sdk": "^1.25.3",
         "@types/jsdom": "^27.0.0",

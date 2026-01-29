@@ -68,17 +68,25 @@ const corsOptions = {
   allowedHeaders: [
     'Content-Type',
     'Authorization',
-    'PAYMENT-SIGNATURE',                 // x402 V2 payment header
+    'PAYMENT-SIGNATURE',                 // x402 V2 payment header (ThirdWeb)
     'payment-signature',                 // x402 V2 payment header (lowercase)
+    'X-PAYMENT',                         // x402 V1 payment header (Cronos)
+    'x-payment',                         // x402 V1 payment header (lowercase)
+    'X-CHAIN-ID',                        // Multichain support
+    'x-chain-id',                        // Multichain support (lowercase)
     'X-Requested-With',
     'x-session-active',                  // Session management
     'x-session-budget-remaining',        // Session budget
+    'x-manowar-internal',                // Internal bypass header
     'access-control-expose-headers',     // CORS header passthrough (thirdweb quirk)
   ],
   exposedHeaders: [
+    '*',                               // Expose ALL headers (required for ThirdWeb x402)
     'Payment-Required',                  // x402 V2 challenge header
     'PAYMENT-RESPONSE',                  // x402 V2 response header
     'payment-response',                  // x402 V2 response header (lowercase)
+    'X-Transaction-Hash',                // Cronos settlement response
+    'X-PAYMENT-RESPONSE',                // Cronos payment response
   ],
   maxAge: 86400,                        // Cache preflight for 24 hours (in seconds)
 };
@@ -243,17 +251,18 @@ app.post(
   asyncHandler(async (req: Request, res: Response) => {
     const slug = req.params.slug as string;
 
-    // x402 Payment Verification - ALWAYS required, no session bypass
-    const { paymentData } = extractPaymentInfo(
+    // x402 Payment Verification - always required, no session bypass (includes chainId from X-CHAIN-ID)
+    const paymentInfo = extractPaymentInfo(
       req.headers as Record<string, string | string[] | undefined>
     );
 
     const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
     const paymentResult = await handleX402Payment(
-      paymentData,
+      paymentInfo.paymentData,
       resourceUrl,
       "POST",
       DEFAULT_PRICES.MCP_TOOL_CALL,
+      paymentInfo.chainId, // Multichain support
     );
 
     if (paymentResult.status !== 200) {
@@ -312,17 +321,18 @@ app.post(
 app.post(
   "/mcp/spawn",
   asyncHandler(async (req: Request, res: Response) => {
-    // x402 Payment Verification
-    const { paymentData } = extractPaymentInfo(
+    // x402 Payment Verification (includes chainId from X-CHAIN-ID)
+    const paymentInfo = extractPaymentInfo(
       req.headers as Record<string, string | string[] | undefined>
     );
 
     const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
     const paymentResult = await handleX402Payment(
-      paymentData,
+      paymentInfo.paymentData,
       resourceUrl,
       "POST",
       DEFAULT_PRICES.MCP_TOOL_CALL, // Same as tool execution
+      paymentInfo.chainId, // Multichain support
     );
 
     if (paymentResult.status !== 200) {
@@ -408,17 +418,18 @@ app.post(
   asyncHandler(async (req: Request, res: Response) => {
     const sessionId = req.params.sessionId as string;
 
-    // x402 Payment Verification
-    const { paymentData } = extractPaymentInfo(
+    // x402 Payment Verification (includes chainId from X-CHAIN-ID)
+    const paymentInfo = extractPaymentInfo(
       req.headers as Record<string, string | string[] | undefined>
     );
 
     const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
     const paymentResult = await handleX402Payment(
-      paymentData,
+      paymentInfo.paymentData,
       resourceUrl,
       "POST",
       DEFAULT_PRICES.MCP_TOOL_CALL,
+      paymentInfo.chainId, // Multichain support
     );
 
     if (paymentResult.status !== 200) {
@@ -667,17 +678,18 @@ app.post(
   asyncHandler(async (req: Request, res: Response) => {
     const pluginId = req.params.pluginId as string;
 
-    // x402 Payment Verification - ALWAYS required, no session bypass
-    const { paymentData } = extractPaymentInfo(
+    // x402 Payment Verification - always required, no session bypass (includes chainId from X-CHAIN-ID)
+    const paymentInfo = extractPaymentInfo(
       req.headers as Record<string, string | string[] | undefined>
     );
 
     const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
     const paymentResult = await handleX402Payment(
-      paymentData,
+      paymentInfo.paymentData,
       resourceUrl,
       "POST",
       DEFAULT_PRICES.GOAT_EXECUTE,
+      paymentInfo.chainId, // Multichain support
     );
 
     if (paymentResult.status !== 200) {
@@ -881,17 +893,18 @@ app.post(
   asyncHandler(async (req: Request, res: Response) => {
     const pluginId = req.params.pluginId as string;
 
-    // x402 Payment Verification - ALWAYS required, no session bypass
-    const { paymentData } = extractPaymentInfo(
+    // x402 Payment Verification - always required, no session bypass (includes chainId from X-CHAIN-ID)
+    const paymentInfo = extractPaymentInfo(
       req.headers as Record<string, string | string[] | undefined>
     );
 
     const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
     const paymentResult = await handleX402Payment(
-      paymentData,
+      paymentInfo.paymentData,
       resourceUrl,
       "POST",
       DEFAULT_PRICES.ELIZA_ACTION,
+      paymentInfo.chainId, // Multichain support
     );
 
     if (paymentResult.status !== 200) {

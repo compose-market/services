@@ -42,8 +42,8 @@ export function x402Middleware(options: {
             return next();
         }
 
-        // 1. Extract payment info from headers
-        const { paymentData, sessionActive, sessionBudgetRemaining } = extractPaymentInfo(req.headers);
+        // 1. Extract payment info from headers (includes chainId from X-CHAIN-ID)
+        const paymentInfo = extractPaymentInfo(req.headers);
 
         // 2. Check for Active Session (Client-side budget management)
         // If the client claims an active session with budget, we trust them for now 
@@ -54,19 +54,21 @@ export function x402Middleware(options: {
         // However, the requirement says "achieve signless txs through active sessions".
         // This usually means the client has a session key that signs the request.
         // The x402 protocol supports "upto" schemes where you authorize a cap.
-        if (sessionActive && sessionBudgetRemaining > 0) {
+        if (paymentInfo.sessionActive && paymentInfo.sessionBudgetRemaining > 0) {
             return next();
         }
 
         // If paymentData is present, we try to settle it.
-        if (paymentData) {
+        if (paymentInfo.paymentData) {
             try {
                 // Use the helper which handles facilitator and settlePayment correctly
+                // Pass chainId for multichain x402 support
                 const result = await handleX402Payment(
-                    paymentData,
+                    paymentInfo.paymentData,
                     req.protocol + "://" + req.get("host") + req.originalUrl,
                     req.method,
-                    options.pricing?.amount
+                    options.pricing?.amount,
+                    paymentInfo.chainId, // Multichain support
                 );
 
                 if (result.status === 200) {

@@ -36,6 +36,14 @@ function asyncHandler(
   };
 }
 
+/**
+ * Helper to extract string from route params (Express v5 types them as string | string[])
+ */
+function getParam(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] || "";
+  return value || "";
+}
+
 // =============================================================================
 // Zod Schemas for API Validation
 // =============================================================================
@@ -97,17 +105,18 @@ app.get("/health", (_req: Request, res: Response) => {
 app.post(
   "/sandbox/run",
   asyncHandler(async (req: Request, res: Response) => {
-    // x402 Payment Verification - ALWAYS required, no session bypass
-    const { paymentData } = extractPaymentInfo(
+    // x402 Payment Verification - always required, no session bypass (includes chainId from X-CHAIN-ID)
+    const paymentInfo = extractPaymentInfo(
       req.headers as Record<string, string | string[] | undefined>
     );
 
     const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
     const paymentResult = await handleX402Payment(
-      paymentData,
+      paymentInfo.paymentData,
       resourceUrl,
       "POST",
       DEFAULT_PRICES.WORKFLOW_RUN,
+      paymentInfo.chainId, // Multichain support
     );
 
     if (paymentResult.status !== 200) {
@@ -222,7 +231,7 @@ app.get(
 app.get(
   "/sandbox/connectors/:id/tools",
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+    const id = getParam(req.params.id);
 
     try {
       const response = await fetch(
