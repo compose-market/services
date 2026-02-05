@@ -2,15 +2,15 @@
  * Connector Hub Server
  *
  * Handles metadata, registry, and routing for MCP servers.
- * Execution/spawning is delegated to the MCP Server (mcp.compose.market).
+ * Execution/spawning is delegated to the Runtime Server (runtime.compose.market).
  *
  * Responsibilities:
  * - Registry: Unified view of all MCP servers, GOAT plugins, ElizaOS plugins
  * - Metadata: Server info, tools, categories, tags
- * - Routing: Proxies execution requests to MCP server
+ * - Routing: Proxies execution requests to Runtime server
  * - Card Generation: Convert registry entries to ComposeAgentCard format
  *
- * NO EXECUTION HERE - All execution is proxied to MCP server.
+ * No execution here - all execution is proxied to Runtime server.
  */
 import "dotenv/config";
 import express, { type Request, type Response, type NextFunction } from "express";
@@ -101,8 +101,8 @@ app.use("/registry", createRegistryRouter());
 // Configuration
 // =============================================================================
 
-/** MCP Server URL - where ALL execution happens */
-const MCP_SERVER_URL = process.env.MCP_SERVICE_URL || "https://mcp.compose.market";
+/** Runtime Server URL - where ALL execution happens */
+const RUNTIME_SERVER_URL = process.env.RUNTIME_SERVER_URL || "https://runtime.compose.market";
 
 // =============================================================================
 // Middleware
@@ -134,7 +134,7 @@ app.get("/health", (_req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
     service: "connector-hub",
     version: "0.3.0",
-    mcpServer: MCP_SERVER_URL,
+    runtimeServer: RUNTIME_SERVER_URL,
   });
 });
 
@@ -204,7 +204,7 @@ app.get(
   "/mcp/status",
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/status`);
+      const response = await fetch(`${RUNTIME_SERVER_URL}/status`);
       const data = await response.json();
       res.json(data);
     } catch (error) {
@@ -225,7 +225,7 @@ app.get(
   asyncHandler(async (req: Request, res: Response) => {
     const slug = req.params.slug as string;
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/mcp/servers/${encodeURIComponent(slug)}/tools`);
+      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/servers/${encodeURIComponent(slug)}/tools`);
       const data = await response.json();
       res.status(response.status).json(data);
     } catch (error) {
@@ -294,7 +294,7 @@ app.post(
         headers["x-manowar-internal"] = internalSecret;
       }
 
-      const response = await fetch(`${MCP_SERVER_URL}/mcp/servers/${encodeURIComponent(slug)}/tools/${encodeURIComponent(toolName)}`, {
+      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/servers/${encodeURIComponent(slug)}/tools/${encodeURIComponent(toolName)}`, {
         method: "POST",
         headers,
         body: JSON.stringify({ args: parseResult.data.args }),
@@ -311,12 +311,12 @@ app.post(
 );
 
 // =============================================================================
-// MCP Server Spawning Routes (Proxied to MCP Server)
+// MCP Server Spawning Routes (Proxied to Runtime Server)
 // =============================================================================
 
 /**
  * POST /mcp/spawn
- * Proxy to MCP server - spawn an MCP server and create session
+ * Proxy to Runtime server - spawn an MCP server and create session
  */
 app.post(
   "/mcp/spawn",
@@ -344,7 +344,7 @@ app.post(
     }
     console.log(`[x402] Payment verified for mcp/spawn`);
 
-    // Proxy to MCP server - forward internal bypass header for nested calls
+    // Proxy to Runtime server - forward internal bypass header for nested calls
     try {
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       const internalSecret = req.headers["x-manowar-internal"] as string | undefined;
@@ -352,7 +352,7 @@ app.post(
         headers["x-manowar-internal"] = internalSecret;
       }
 
-      const response = await fetch(`${MCP_SERVER_URL}/mcp/spawn`, {
+      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/spawn`, {
         method: "POST",
         headers,
         body: JSON.stringify(req.body),
@@ -376,7 +376,7 @@ app.get(
   "/mcp/sessions",
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/mcp/sessions`);
+      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/sessions`);
       const data = await response.json();
       res.json(data);
     } catch (error) {
@@ -397,7 +397,7 @@ app.get(
   asyncHandler(async (req: Request, res: Response) => {
     const sessionId = req.params.sessionId as string;
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}/tools`);
+      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}/tools`);
       const data = await response.json();
       res.status(response.status).json(data);
     } catch (error) {
@@ -441,9 +441,9 @@ app.post(
     }
     console.log(`[x402] Payment verified for mcp/sessions/${sessionId}/execute`);
 
-    // Proxy to MCP server
+    // Proxy to Runtime server
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}/execute`, {
+      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}/execute`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(req.body),
@@ -461,14 +461,14 @@ app.post(
 
 /**
  * DELETE /mcp/sessions/:sessionId
- * Proxy to MCP server - terminate session
+ * Proxy to Runtime server - terminate session
  */
 app.delete(
   "/mcp/sessions/:sessionId",
   asyncHandler(async (req: Request, res: Response) => {
     const sessionId = req.params.sessionId as string;
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}`, {
+      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}`, {
         method: "DELETE",
       });
       const data = await response.json();
@@ -580,18 +580,18 @@ app.post(
 );
 
 // =============================================================================
-// GOAT Plugin Routes (Proxied to MCP Server)
+// GOAT Plugin Routes (Proxied to Runtime Server)
 // =============================================================================
 
 /**
  * GET /plugins
- * Proxy to MCP server - list all GOAT plugins (dynamically loaded)
+ * Proxy to Runtime server - list all GOAT plugins (dynamically loaded)
  */
 app.get(
   "/plugins",
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/goat/plugins`);
+      const response = await fetch(`${RUNTIME_SERVER_URL}/goat/plugins`);
       const data = await response.json();
       res.json(data);
     } catch (error) {
@@ -605,13 +605,13 @@ app.get(
 
 /**
  * GET /plugins/status
- * Proxy to MCP server - GOAT runtime status
+ * Proxy to Runtime server - GOAT runtime status
  */
 app.get(
   "/plugins/status",
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/goat/status`);
+      const response = await fetch(`${RUNTIME_SERVER_URL}/goat/status`);
       const data = await response.json();
       res.json(data);
     } catch (error) {
@@ -625,13 +625,13 @@ app.get(
 
 /**
  * GET /plugins/tools
- * Proxy to MCP server - list all GOAT tools across all plugins
+ * Proxy to Runtime server - list all GOAT tools across all plugins
  */
 app.get(
   "/plugins/tools",
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/goat/tools`);
+      const response = await fetch(`${RUNTIME_SERVER_URL}/goat/tools`);
       const data = await response.json();
       res.json(data);
     } catch (error) {
@@ -645,14 +645,14 @@ app.get(
 
 /**
  * GET /plugins/:pluginId/tools
- * Proxy to MCP server - list tools for a GOAT plugin
+ * Proxy to Runtime server - list tools for a GOAT plugin
  */
 app.get(
   "/plugins/:pluginId/tools",
   asyncHandler(async (req: Request, res: Response) => {
     const pluginId = req.params.pluginId as string;
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/goat/plugins/${encodeURIComponent(pluginId)}`);
+      const response = await fetch(`${RUNTIME_SERVER_URL}/goat/plugins/${encodeURIComponent(pluginId)}`);
       const data = await response.json();
       res.status(response.status).json(data);
     } catch (error) {
@@ -671,7 +671,7 @@ const ExecuteToolSchema = z.object({
 
 /**
  * POST /plugins/:pluginId/execute
- * Proxy to MCP server - execute a GOAT plugin tool
+ * Proxy to Runtime server - execute a GOAT plugin tool
  */
 app.post(
   "/plugins/:pluginId/execute",
@@ -711,7 +711,7 @@ app.post(
     }
 
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/goat/${encodeURIComponent(pluginId)}/execute`, {
+      const response = await fetch(`${RUNTIME_SERVER_URL}/goat/${encodeURIComponent(pluginId)}/execute`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parseResult.data),
@@ -728,7 +728,7 @@ app.post(
 );
 
 // =============================================================================
-// ElizaOS Plugin Routes (Proxied to MCP Server)
+// ElizaOS Plugin Routes (Proxied to Runtime Server)
 // Users build their OWN agents and equip them with ElizaOS plugins.
 // These routes let users:
 // 1. List all available plugins from the ElizaOS registry
@@ -738,18 +738,18 @@ app.post(
 
 /**
  * GET /eliza/status
- * Proxy to MCP server - ElizaOS runtime status
+ * Proxy to Runtime server - ElizaOS runtime status
  */
 app.get(
   "/eliza/status",
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/eliza/status`);
+      const response = await fetch(`${RUNTIME_SERVER_URL}/eliza/status`);
       const data = await response.json();
       res.json(data);
     } catch (error) {
       res.status(503).json({
-        error: "MCP server unavailable",
+        error: "Runtime server unavailable",
         message: error instanceof Error ? error.message : String(error),
       });
     }
@@ -758,7 +758,7 @@ app.get(
 
 /**
  * GET /eliza/plugins
- * Proxy to MCP server - list available ElizaOS plugins
+ * Proxy to Runtime server - list available ElizaOS plugins
  * Query params: search, category
  */
 app.get(
@@ -766,7 +766,7 @@ app.get(
   asyncHandler(async (req: Request, res: Response) => {
     try {
       // Forward query params
-      const url = new URL(`${MCP_SERVER_URL}/eliza/plugins`);
+      const url = new URL(`${RUNTIME_SERVER_URL}/eliza/plugins`);
       if (req.query.search) url.searchParams.set("search", String(req.query.search));
       if (req.query.category) url.searchParams.set("category", String(req.query.category));
 
@@ -775,7 +775,7 @@ app.get(
       res.json(data);
     } catch (error) {
       res.status(503).json({
-        error: "MCP server unavailable",
+        error: "Runtime server unavailable",
         message: error instanceof Error ? error.message : String(error),
       });
     }
@@ -784,14 +784,14 @@ app.get(
 
 /**
  * GET /eliza/plugins/:pluginId
- * Proxy to MCP server - get plugin details
+ * Proxy to Runtime server - get plugin details
  */
 app.get(
   "/eliza/plugins/:pluginId",
   asyncHandler(async (req: Request, res: Response) => {
     const pluginId = req.params.pluginId as string;
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}`);
+      const response = await fetch(`${RUNTIME_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}`);
       const data = await response.json();
       res.status(response.status).json(data);
     } catch (error) {
@@ -805,7 +805,7 @@ app.get(
 
 /**
  * GET /eliza/plugins/:pluginId/actions
- * Proxy to MCP server - get action schemas with full JSON parameter definitions
+ * Proxy to Runtime server - get action schemas with full JSON parameter definitions
  * This is the KEY endpoint for frontend to display action parameter forms
  */
 app.get(
@@ -813,7 +813,7 @@ app.get(
   asyncHandler(async (req: Request, res: Response) => {
     const pluginId = req.params.pluginId as string;
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions`);
+      const response = await fetch(`${RUNTIME_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions`);
       const data = await response.json();
       res.status(response.status).json(data);
     } catch (error) {
@@ -827,7 +827,7 @@ app.get(
 
 /**
  * GET /eliza/plugins/:pluginId/actions/:actionName
- * Proxy to MCP server - get specific action schema
+ * Proxy to Runtime server - get specific action schema
  */
 app.get(
   "/eliza/plugins/:pluginId/actions/:actionName",
@@ -836,7 +836,7 @@ app.get(
     const actionName = req.params.actionName as string;
     try {
       const response = await fetch(
-        `${MCP_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions/${encodeURIComponent(actionName)}`
+        `${RUNTIME_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions/${encodeURIComponent(actionName)}`
       );
       const data = await response.json();
       res.status(response.status).json(data);
@@ -851,7 +851,7 @@ app.get(
 
 /**
  * GET /eliza/plugins/:pluginId/actions/:actionName/example
- * Proxy to MCP server - get example request body for an action
+ * Proxy to Runtime server - get example request body for an action
  */
 app.get(
   "/eliza/plugins/:pluginId/actions/:actionName/example",
@@ -860,7 +860,7 @@ app.get(
     const actionName = req.params.actionName as string;
     try {
       const response = await fetch(
-        `${MCP_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions/${encodeURIComponent(actionName)}/example`
+        `${RUNTIME_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions/${encodeURIComponent(actionName)}/example`
       );
       const data = await response.json();
       res.status(response.status).json(data);
@@ -881,7 +881,7 @@ const ElizaExecuteSchema = z.object({
 
 /**
  * POST /eliza/plugins/:pluginId/execute
- * Proxy to MCP server - execute an ElizaOS plugin action
+ * Proxy to Runtime server - execute an ElizaOS plugin action
  * This is for TESTING actions before equipping them on user agents
  * 
  * Body: { action: string, params: Record<string, unknown>, modelId?: string }
@@ -928,7 +928,7 @@ app.post(
 
     try {
       const response = await fetch(
-        `${MCP_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/execute`,
+        `${RUNTIME_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/execute`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -966,8 +966,8 @@ const PORT = parseInt(process.env.PORT || "4001", 10);
 
 const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`\n🔌 Connector Hub listening on http://0.0.0.0:${PORT}`);
-  console.log(`\n🚀 MCP Server: ${MCP_SERVER_URL}`);
-  console.log("\n⚠️  NOTE: All execution is proxied to MCP Server - no local execution!");
+  console.log(`\n🚀 Runtime Server: ${RUNTIME_SERVER_URL}`);
+  console.log("\n⚠️  NOTE: All execution is proxied to Runtime Server - no local execution!");
   console.log("\nEndpoints:");
   console.log("  GET  /health              - Health check");
   console.log("");

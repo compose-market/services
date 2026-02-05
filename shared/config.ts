@@ -24,9 +24,9 @@ export const PORTS = {
 export const CONNECTOR_BASE_URL =
     process.env.CONNECTOR_BASE_URL || `http://localhost:${PORTS.CONNECTOR}`;
 
-/** URL of the MCP service */
-export const MCP_SERVICE_URL =
-    process.env.MCP_SERVICE_URL || "https://mcp.compose.market";
+/** URL of the Runtime service */
+export const RUNTIME_SERVICE_URL =
+    process.env.RUNTIME_SERVICE_URL || "https://runtime.compose.market";
 
 /** Base URL for all services (external) */
 export const SERVICES_URL =
@@ -73,5 +73,5 @@ console.log(`  CONNECTOR_PORT: ${PORTS.CONNECTOR}`);
 console.log(`  SANDBOX_PORT: ${PORTS.SANDBOX}`);
 console.log(`  EXPORTER_PORT: ${PORTS.EXPORTER}`);
 console.log(`  CONNECTOR_BASE_URL: ${CONNECTOR_BASE_URL}`);
-console.log(`  MCP_SERVICE_URL: ${MCP_SERVICE_URL}`);
+console.log(`  RUNTIME_SERVICE_URL: ${RUNTIME_SERVICE_URL}`);
 console.log(`  USE_MAINNET: ${USE_MAINNET}`);

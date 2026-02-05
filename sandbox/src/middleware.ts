@@ -20,7 +20,7 @@ const client = createThirdwebClient({
  * Intercepts requests and enforces payment or active session.
  * 
  * @param options Configuration for the middleware
- * @param options.serviceId The ID of the service requesting payment (e.g., "connector", "mcp")
+ * @param options.serviceId The ID of the service requesting payment (e.g., "connector", "runtime")
  * @param options.pricing Default pricing if not specified per-request
  */
 export function x402Middleware(options: {
