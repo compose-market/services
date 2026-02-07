@@ -748,6 +748,7 @@ export async function getServerSpawnConfig(serverId: string): Promise<{
   env?: Record<string, string>;
   image?: string;
   remoteUrl?: string;
+  protocol?: "sse" | "streamable-http";
   package?: string;
 } | null> {
   // Use flexible resolution instead of direct lookup
@@ -758,12 +759,46 @@ export async function getServerSpawnConfig(serverId: string): Promise<{
     return null;
   }
 
-  // Return config based on transport type
-  if (server.remoteUrl) {
+  // ─── Step 1: Resolve remoteUrl (check top-level, then remotes[] array) ───
+  let remoteUrl = server.remoteUrl;
+  let protocol: "sse" | "streamable-http" | undefined;
+
+  // If no top-level remoteUrl, check remotes[] array in the raw data
+  if (!remoteUrl && "remotes" in server.raw) {
+    const remotes = (server.raw as any).remotes as Array<{ type: string; url: string }> | undefined;
+    if (remotes && remotes.length > 0) {
+      // Prefer streamable-http over sse (newer protocol)
+      const streamable = remotes.find((r) => r.type === "streamable-http");
+      const sse = remotes.find((r) => r.type === "sse");
+      const chosen = streamable || sse || remotes[0];
+      if (chosen?.url) {
+        remoteUrl = chosen.url;
+        protocol = streamable ? "streamable-http" : sse ? "sse" : undefined;
+      }
+    }
+  }
+
+  // Detect protocol from URL if remotes[] didn't provide it
+  if (remoteUrl && !protocol) {
+    if (remoteUrl.replace(/\/$/, "").endsWith("/sse")) protocol = "sse";
+    else if (remoteUrl.replace(/\/$/, "").endsWith("/mcp")) protocol = "streamable-http";
+  }
+
+  // Filter out placeholder URLs that will never work
+  if (remoteUrl && isPlaceholderUrl(remoteUrl)) {
+    console.warn(`[registry] Skipping placeholder remoteUrl for ${serverId}: ${remoteUrl}`);
+    remoteUrl = undefined;
+    protocol = undefined;
+  }
+
+  // ─── Step 2: Return config based on transport type ───
+
+  if (remoteUrl) {
     // HTTP/SSE remote server
     return {
       transport: "http",
-      remoteUrl: server.remoteUrl,
+      remoteUrl,
+      protocol,
     };
   }
 
@@ -775,19 +810,38 @@ export async function getServerSpawnConfig(serverId: string): Promise<{
     };
   }
 
-  // Fallback: stdio with npx
-  // Try to extract package name from server metadata
-  let packageName: string | undefined;
+  // ─── Step 3: stdio/npx from packages (use spawn config when available) ───
 
   // Type guard: packages only exist on McpServer, not InternalMcpServer
   if ("packages" in server.raw && server.raw.packages && server.raw.packages.length > 0) {
-    const npmPackage = server.raw.packages.find((p: any) => p.registryType === "npm" || p.registryType === "npmjs");
-    const pypiPackage = server.raw.packages.find((p: any) => p.registryType === "pypi");
+    const packages = server.raw.packages as Array<any>;
+
+    // Look for a package with explicit spawn config first
+    const withSpawn = packages.find((p: any) => p.spawn?.command);
+    if (withSpawn) {
+      // Use the explicit spawn command and args from the registry
+      return {
+        transport: "stdio",
+        command: withSpawn.spawn.command,
+        args: withSpawn.spawn.args || [],
+        env: withSpawn.spawn.env || {},
+      };
+    }
+
+    // No explicit spawn — try to build from package metadata
+    const npmPackage = packages.find((p: any) => p.registryType === "npm" || p.registryType === "npmjs");
+    const pypiPackage = packages.find((p: any) => p.registryType === "pypi");
 
     if (npmPackage) {
-      packageName = npmPackage.identifier;
-    } else if (pypiPackage) {
-      // Python package - use uvx or pipx
+      return {
+        transport: "npx",
+        package: npmPackage.identifier,
+        env: {},
+      };
+    }
+
+    if (pypiPackage) {
+      // Python package - use uvx
       return {
         transport: "stdio",
         command: "uvx",
@@ -797,15 +851,12 @@ export async function getServerSpawnConfig(serverId: string): Promise<{
     }
   }
 
-  // If no package metadata, try to infer from namespace/slug
-  if (!packageName) {
-    // Common patterns: @modelcontextprotocol/server-*, @namespace/server-*
-    if (server.namespace === "modelcontextprotocol") {
-      packageName = `@modelcontextprotocol/server-${server.slug}`;
-    } else {
-      // Generic pattern
-      packageName = `@${server.namespace}/server-${server.slug}`;
-    }
+  // ─── Step 4: Last resort — infer from namespace/slug ───
+  let packageName: string;
+  if (server.namespace === "modelcontextprotocol") {
+    packageName = `@modelcontextprotocol/server-${server.slug}`;
+  } else {
+    packageName = `@${server.namespace}/server-${server.slug}`;
   }
 
   return {
@@ -813,6 +864,25 @@ export async function getServerSpawnConfig(serverId: string): Promise<{
     package: packageName,
     env: {},
   };
+}
+
+/**
+ * Check if a URL is a placeholder that will never work.
+ */
+function isPlaceholderUrl(url: string): boolean {
+  const lower = url.toLowerCase();
+  return (
+    lower.includes("your-") ||
+    lower.includes("your_") ||
+    lower.includes("localhost") ||
+    lower.includes("127.0.0.1") ||
+    lower.includes("0.0.0.0") ||
+    lower.includes("example.com") ||
+    lower.includes("placeholder") ||
+    lower.includes("your-deployment") ||
+    lower.includes("your-server") ||
+    lower.includes("your-mcp")
+  );
 }
 
 /**
