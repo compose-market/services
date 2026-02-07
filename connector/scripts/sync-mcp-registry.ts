@@ -170,7 +170,7 @@ async function fetchMcpRegistryServers(): Promise<McpServer[]> {
 
             if (hasRemotes) {
                 transport = "http";
-                remoteUrl = s.remotes[0].url;
+                remoteUrl = s.remotes![0].url;
             }
 
             // Check if server has existing Docker/OCI image
@@ -248,7 +248,9 @@ async function fetchMcpRegistryServers(): Promise<McpServer[]> {
                 } : s.repository,
                 spdxLicense: s.license,
                 url: s.websiteUrl,
-                environmentVariablesJsonSchema: s.packages?.[0]?.environmentVariables || null,
+                environmentVariablesJsonSchema: s.packages?.[0]?.environmentVariables
+                    ? Object.fromEntries(s.packages[0].environmentVariables.map(v => [v.name, { description: v.description, isSecret: v.isSecret }]))
+                    : null,
                 transport,
                 image: undefined, // Will be populated by build-images.ts
                 remoteUrl,
