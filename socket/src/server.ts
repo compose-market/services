@@ -1,16 +1,9 @@
 /**
- * Lyria RealTime Socket Server
+ * Compose Socket Server
  *
- * WebSocket proxy for Google Lyria RealTime music generation.
- * Handles bidirectional streaming between clients and Lyria API.
- *
- * Features:
- * - Real-time music generation with continuous steering
- * - Session management for multiple concurrent users
- * - Play/pause/stop/reset transport controls
- * - BPM, temperature, scale configuration
- *
- * Audio Output: 16-bit PCM, 48kHz stereo
+ * Multi-service WebSocket server:
+ * - /lyria   — Google Lyria RealTime music generation
+ * - /whatsapp — Baileys WhatsApp Web QR pairing
  *
  * @see https://ai.google.dev/gemini-api/docs/music-generation
  */
@@ -20,6 +13,18 @@ import cors from "cors";
 import http from "http";
 import WebSocket, { WebSocketServer } from "ws";
 import { GoogleGenAI } from "@google/genai";
+import { createClient, type RedisClientType } from "redis";
+import makeWASocket, {
+    useMultiFileAuthState,
+    DisconnectReason,
+    fetchLatestBaileysVersion,
+    type WASocket,
+} from "@whiskeysockets/baileys";
+import { Boom } from "@hapi/boom";
+import QRCode from "qrcode";
+import path from "path";
+import fs from "fs";
+import os from "os";
 
 // =============================================================================
 // Configuration
@@ -120,9 +125,10 @@ app.get("/health", (_req: Request, res: Response) => {
     res.json({
         status: "ok",
         timestamp: new Date().toISOString(),
-        service: "socket-lyria",
-        version: "0.1.0",
-        activeSessions: sessions.size,
+        service: "socket",
+        version: "0.2.0",
+        lyriaSessions: sessions.size,
+        whatsappSessions: waActiveSessions.size,
     });
 });
 
@@ -371,11 +377,210 @@ wss.on("connection", async (ws: WebSocket, req) => {
 });
 
 // =============================================================================
+// WhatsApp — Baileys QR Pairing
+// =============================================================================
+
+// Redis client for storing WhatsApp auth state and channel bindings
+let redisClient: RedisClientType | null = null;
+
+async function getRedis(): Promise<RedisClientType> {
+    if (redisClient?.isOpen) return redisClient;
+
+    const endpoint = process.env.REDIS_DATABASE_PUBLIC_ENDPOINT;
+    const password = process.env.REDIS_DEFAULT_PASSWORD;
+    const useTls = process.env.REDIS_TLS === "true";
+
+    if (!endpoint || !password) {
+        throw new Error("Redis config missing: REDIS_DATABASE_PUBLIC_ENDPOINT + REDIS_DEFAULT_PASSWORD");
+    }
+
+    const [host, portStr] = endpoint.split(":");
+    const port = parseInt(portStr, 10);
+
+    redisClient = createClient({
+        socket: useTls ? { host, port, tls: true as const } : { host, port },
+        password,
+    });
+
+    redisClient.on("error", (err) => console.error("[redis] Error:", err));
+    await redisClient.connect();
+    console.log("[whatsapp] Redis connected");
+    return redisClient;
+}
+
+// Track active WhatsApp sessions per userId
+const waActiveSessions = new Map<string, { sock: WASocket; ws: WebSocket }>();
+
+// Auth state directory (per user)
+const WA_AUTH_DIR = path.join(os.tmpdir(), "compose-wa-auth");
+fs.mkdirSync(WA_AUTH_DIR, { recursive: true });
+
+const wssWhatsApp = new WebSocketServer({ server, path: "/whatsapp" });
+
+wssWhatsApp.on("connection", async (ws: WebSocket, req) => {
+    // userId passed as query param: /whatsapp?userId=xxx
+    const url = new URL(req.url || "/", `http://${req.headers.host}`);
+    const userId = url.searchParams.get("userId");
+
+    if (!userId) {
+        ws.send(JSON.stringify({ type: "error", message: "userId query parameter required" }));
+        ws.close();
+        return;
+    }
+
+    console.log(`[whatsapp] New connection for user: ${userId}`);
+
+    // Check if already connected
+    const redis = await getRedis();
+    const existingBinding = await redis.get(`backpack:channel:${userId}:whatsapp`);
+    if (existingBinding) {
+        ws.send(JSON.stringify({ type: "already_connected", message: "WhatsApp already linked" }));
+        ws.close();
+        return;
+    }
+
+    // Check if there's already an active session for this user
+    const existingSession = waActiveSessions.get(userId);
+    if (existingSession) {
+        console.log(`[whatsapp] Cleaning up existing session for ${userId}`);
+        try { existingSession.sock.end(undefined); } catch { /* ignore */ }
+        waActiveSessions.delete(userId);
+    }
+
+    try {
+        // Set up auth state (file-based, per user)
+        const authDir = path.join(WA_AUTH_DIR, userId);
+        fs.mkdirSync(authDir, { recursive: true });
+
+        const { state, saveCreds } = await useMultiFileAuthState(authDir);
+        const { version } = await fetchLatestBaileysVersion();
+
+        // Create Baileys socket
+        const sock = makeWASocket({
+            version,
+            auth: state,
+            printQRInTerminal: false,
+            browser: ["Compose Market", "Chrome", "1.0.0"],
+            generateHighQualityLinkPreview: false,
+        });
+
+        waActiveSessions.set(userId, { sock, ws });
+
+        // Handle connection updates
+        sock.ev.on("connection.update", async (update) => {
+            const { connection, lastDisconnect, qr } = update;
+
+            if (qr) {
+                // Generate QR code as data URL and send to client
+                try {
+                    const qrDataUrl = await QRCode.toDataURL(qr, {
+                        width: 256,
+                        margin: 2,
+                        color: { dark: "#000000", light: "#ffffff" },
+                    });
+
+                    ws.send(JSON.stringify({ type: "qr", qr: qrDataUrl }));
+                    console.log(`[whatsapp] QR sent to user ${userId}`);
+                } catch (err) {
+                    console.error(`[whatsapp] QR generation error:`, err);
+                    ws.send(JSON.stringify({ type: "error", message: "Failed to generate QR code" }));
+                }
+            }
+
+            if (connection === "open") {
+                // Successfully connected!
+                const phoneNumber = sock.user?.id?.split(":")[0] || sock.user?.id || "unknown";
+
+                console.log(`[whatsapp] Connected for user ${userId}: ${phoneNumber}`);
+
+                // Store channel binding in Redis (same key pattern as Lambda backpack)
+                const binding = JSON.stringify({
+                    waId: phoneNumber,
+                    boundAt: Date.now(),
+                });
+                await redis.set(`backpack:channel:${userId}:whatsapp`, binding);
+
+                ws.send(JSON.stringify({
+                    type: "connected",
+                    phoneNumber,
+                    message: "WhatsApp linked successfully",
+                }));
+
+                // Cleanup — we don't need the active WS session anymore
+                waActiveSessions.delete(userId);
+                ws.close();
+            }
+
+            if (connection === "close") {
+                const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
+                const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+
+                console.log(`[whatsapp] Connection closed for ${userId}, status: ${statusCode}, reconnect: ${shouldReconnect}`);
+
+                if (!shouldReconnect) {
+                    // User logged out — clean up
+                    ws.send(JSON.stringify({ type: "disconnected", message: "Session logged out" }));
+                    waActiveSessions.delete(userId);
+
+                    // Clean up auth state files
+                    try {
+                        fs.rmSync(authDir, { recursive: true, force: true });
+                    } catch { /* ignore */ }
+                } else if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: "reconnecting", message: "Reconnecting..." }));
+                }
+            }
+        });
+
+        // Save credentials on update
+        sock.ev.on("creds.update", saveCreds);
+
+        // Handle client disconnect
+        ws.on("close", () => {
+            console.log(`[whatsapp] Client disconnected: ${userId}`);
+            const session = waActiveSessions.get(userId);
+            if (session) {
+                try { session.sock.end(undefined); } catch { /* ignore */ }
+                waActiveSessions.delete(userId);
+            }
+        });
+
+        ws.on("message", async (data: Buffer | ArrayBuffer | Buffer[]) => {
+            try {
+                const msg = JSON.parse(data.toString());
+                if (msg.type === "disconnect") {
+                    // User wants to disconnect WhatsApp
+                    console.log(`[whatsapp] User ${userId} requested disconnect`);
+                    await redis.del(`backpack:channel:${userId}:whatsapp`);
+                    try { sock.end(undefined); } catch { /* ignore */ }
+                    try {
+                        fs.rmSync(authDir, { recursive: true, force: true });
+                    } catch { /* ignore */ }
+                    waActiveSessions.delete(userId);
+                    ws.send(JSON.stringify({ type: "disconnected", message: "WhatsApp unlinked" }));
+                    ws.close();
+                }
+            } catch { /* ignore malformed messages */ }
+        });
+
+    } catch (err) {
+        console.error(`[whatsapp] Setup error for ${userId}:`, err);
+        ws.send(JSON.stringify({
+            type: "error",
+            message: err instanceof Error ? err.message : "Failed to initialize WhatsApp session",
+        }));
+        ws.close();
+    }
+});
+
+// =============================================================================
 // Start Server
 // =============================================================================
 
 server.listen(PORT, () => {
-    console.log(`[socket] Lyria RealTime server listening on port ${PORT}`);
-    console.log(`[socket] WebSocket endpoint: ws://localhost:${PORT}/lyria`);
-    console.log(`[socket] Health check: http://localhost:${PORT}/health`);
+    console.log(`[socket] Server listening on port ${PORT}`);
+    console.log(`[socket] WebSocket endpoints:`);
+    console.log(`[socket]   ws://localhost:${PORT}/lyria`);
+    console.log(`[socket]   ws://localhost:${PORT}/whatsapp`);
+    console.log(`[socket] Health: http://localhost:${PORT}/health`);
 });
