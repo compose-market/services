@@ -671,8 +671,9 @@ function generateTags(name: string, namespace: string, description: string): str
  * 4. By cleanSlug of name
  * 5. Partial slug match (e.g., "perplexity" matches "perplexity-web-search")
  */
-export async function resolveServerByFlexibleId(
-  serverId: string
+async function resolveServerInternal(
+  serverId: string,
+  options: { allowPartial: boolean }
 ): Promise<UnifiedServerRecord | undefined> {
   const registry = await getRegistry();
   const normalizedInput = serverId.toLowerCase().replace(/^mcp[:-]/, '');
@@ -705,15 +706,17 @@ export async function resolveServerByFlexibleId(
     return server;
   }
 
-  // 5. Partial slug match (e.g., "perplexity" matches "perplexity-web-search")
-  // Prefer shorter slugs for more specific matches
-  const partialMatches = registry
-    .filter(s => s.slug.includes(normalizedInput) || s.name.includes(normalizedInput))
-    .sort((a, b) => a.slug.length - b.slug.length);
-  if (partialMatches.length > 0) {
-    server = partialMatches[0];
-    console.log(`[registry] Resolved "${serverId}" by partial match -> ${server.registryId} (${partialMatches.length} candidates)`);
-    return server;
+  if (options.allowPartial) {
+    // 5. Partial slug match (e.g., "perplexity" matches "perplexity-web-search")
+    // Prefer shorter slugs for more specific matches
+    const partialMatches = registry
+      .filter(s => s.slug.includes(normalizedInput) || s.name.includes(normalizedInput))
+      .sort((a, b) => a.slug.length - b.slug.length);
+    if (partialMatches.length > 0) {
+      server = partialMatches[0];
+      console.log(`[registry] Resolved "${serverId}" by partial match -> ${server.registryId} (${partialMatches.length} candidates)`);
+      return server;
+    }
   }
 
   // 6. Try with common suffixes removed/added
@@ -737,6 +740,18 @@ export async function resolveServerByFlexibleId(
   return undefined;
 }
 
+export async function resolveServerByFlexibleId(
+  serverId: string
+): Promise<UnifiedServerRecord | undefined> {
+  return resolveServerInternal(serverId, { allowPartial: true });
+}
+
+export async function resolveServerByStrictId(
+  serverId: string
+): Promise<UnifiedServerRecord | undefined> {
+  return resolveServerInternal(serverId, { allowPartial: false });
+}
+
 /**
  * Get spawn configuration for an MCP server
  * Dynamically looks up server in registry and returns spawn config based on transport type
@@ -751,11 +766,11 @@ export async function getServerSpawnConfig(serverId: string): Promise<{
   protocol?: "sse" | "streamable-http";
   package?: string;
 } | null> {
-  // Use flexible resolution instead of direct lookup
-  const server = await resolveServerByFlexibleId(serverId);
+  // Execution path is strict: no partial matching.
+  const server = await resolveServerByStrictId(serverId);
 
   if (!server) {
-    console.warn(`[registry] Server not found after flexible resolution: ${serverId}`);
+    console.warn(`[registry] Server not found after strict resolution: ${serverId}`);
     return null;
   }
 
@@ -1307,4 +1322,3 @@ export function createRegistryRouter(): express.Router {
 
   return router;
 }
-
