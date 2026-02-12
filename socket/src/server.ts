@@ -149,7 +149,7 @@ app.get("/sessions", (_req: Request, res: Response) => {
 // =============================================================================
 
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server, path: "/lyria" });
+const wss = new WebSocketServer({ noServer: true });
 
 wss.on("connection", async (ws: WebSocket, req) => {
     const sessionId = crypto.randomUUID();
@@ -415,10 +415,9 @@ const waActiveSessions = new Map<string, { sock: WASocket; ws: WebSocket }>();
 const WA_AUTH_DIR = path.join(os.tmpdir(), "compose-wa-auth");
 fs.mkdirSync(WA_AUTH_DIR, { recursive: true });
 
-const wssWhatsApp = new WebSocketServer({ server, path: "/whatsapp" });
+const wssWhatsApp = new WebSocketServer({ noServer: true });
 
 wssWhatsApp.on("connection", async (ws: WebSocket, req) => {
-    // userId passed as query param: /whatsapp?userId=xxx
     const url = new URL(req.url || "/", `http://${req.headers.host}`);
     const userId = url.searchParams.get("userId");
 
@@ -430,7 +429,7 @@ wssWhatsApp.on("connection", async (ws: WebSocket, req) => {
 
     console.log(`[whatsapp] New connection for user: ${userId}`);
 
-    // Check if already connected
+
     const redis = await getRedis();
     const existingBinding = await redis.get(`backpack:channel:${userId}:whatsapp`);
     if (existingBinding) {
@@ -439,7 +438,7 @@ wssWhatsApp.on("connection", async (ws: WebSocket, req) => {
         return;
     }
 
-    // Check if there's already an active session for this user
+    // Cleanup any stale session
     const existingSession = waActiveSessions.get(userId);
     if (existingSession) {
         console.log(`[whatsapp] Cleaning up existing session for ${userId}`);
@@ -447,15 +446,28 @@ wssWhatsApp.on("connection", async (ws: WebSocket, req) => {
         waActiveSessions.delete(userId);
     }
 
-    try {
-        // Set up auth state (file-based, per user)
-        const authDir = path.join(WA_AUTH_DIR, userId);
-        fs.mkdirSync(authDir, { recursive: true });
+    const authDir = path.join(WA_AUTH_DIR, userId);
+
+    // Clean stale auth if no active binding exists (e.g. after disconnect)
+    if (fs.existsSync(authDir)) {
+        console.log(`[whatsapp] Cleaning stale auth dir for ${userId} (no active binding)`);
+        try { fs.rmSync(authDir, { recursive: true, force: true }); } catch { /* ignore */ }
+    }
+
+    fs.mkdirSync(authDir, { recursive: true });
+
+    let pairingPhone: string | null = null;
+    let clientClosed = false;
+
+    // =========================================================================
+    // Recursive session starter — handles reconnects after QR scan (code 515)
+    // =========================================================================
+    async function startBaileysSession() {
+        if (clientClosed) return;
 
         const { state, saveCreds } = await useMultiFileAuthState(authDir);
         const { version } = await fetchLatestBaileysVersion();
 
-        // Create Baileys socket
         const sock = makeWASocket({
             version,
             auth: state,
@@ -464,104 +476,143 @@ wssWhatsApp.on("connection", async (ws: WebSocket, req) => {
             generateHighQualityLinkPreview: false,
         });
 
-        waActiveSessions.set(userId, { sock, ws });
+        waActiveSessions.set(userId!, { sock, ws });
 
-        // Handle connection updates
         sock.ev.on("connection.update", async (update) => {
             const { connection, lastDisconnect, qr } = update;
 
-            if (qr) {
-                // Generate QR code as data URL and send to client
+            // QR code — only send if not in phone pairing mode
+            if (qr && !pairingPhone) {
                 try {
                     const qrDataUrl = await QRCode.toDataURL(qr, {
-                        width: 256,
-                        margin: 2,
+                        width: 256, margin: 2,
                         color: { dark: "#000000", light: "#ffffff" },
                     });
-
-                    ws.send(JSON.stringify({ type: "qr", qr: qrDataUrl }));
-                    console.log(`[whatsapp] QR sent to user ${userId}`);
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ type: "qr", qr: qrDataUrl }));
+                        console.log(`[whatsapp] QR sent to user ${userId}`);
+                    }
                 } catch (err) {
                     console.error(`[whatsapp] QR generation error:`, err);
-                    ws.send(JSON.stringify({ type: "error", message: "Failed to generate QR code" }));
                 }
             }
 
+            // Successfully paired!
             if (connection === "open") {
-                // Successfully connected!
                 const phoneNumber = sock.user?.id?.split(":")[0] || sock.user?.id || "unknown";
-
                 console.log(`[whatsapp] Connected for user ${userId}: ${phoneNumber}`);
 
-                // Store channel binding in Redis (same key pattern as Lambda backpack)
-                const binding = JSON.stringify({
-                    waId: phoneNumber,
-                    boundAt: Date.now(),
-                });
+                const binding = JSON.stringify({ waId: phoneNumber, boundAt: Date.now() });
                 await redis.set(`backpack:channel:${userId}:whatsapp`, binding);
 
-                ws.send(JSON.stringify({
-                    type: "connected",
-                    phoneNumber,
-                    message: "WhatsApp linked successfully",
-                }));
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: "connected", phoneNumber,
+                        message: "WhatsApp linked successfully",
+                    }));
+                }
 
-                // Cleanup — we don't need the active WS session anymore
-                waActiveSessions.delete(userId);
+                waActiveSessions.delete(userId!);
                 ws.close();
             }
 
+            // Connection closed — reconnect if needed (e.g. code 515 after QR scan)
             if (connection === "close") {
                 const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
                 const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
                 console.log(`[whatsapp] Connection closed for ${userId}, status: ${statusCode}, reconnect: ${shouldReconnect}`);
 
-                if (!shouldReconnect) {
-                    // User logged out — clean up
-                    ws.send(JSON.stringify({ type: "disconnected", message: "Session logged out" }));
-                    waActiveSessions.delete(userId);
-
-                    // Clean up auth state files
-                    try {
-                        fs.rmSync(authDir, { recursive: true, force: true });
-                    } catch { /* ignore */ }
-                } else if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({ type: "reconnecting", message: "Reconnecting..." }));
+                if (shouldReconnect && !clientClosed) {
+                    console.log(`[whatsapp] Reconnecting for ${userId}...`);
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ type: "reconnecting", message: "Completing pairing..." }));
+                    }
+                    setTimeout(() => startBaileysSession(), 1000);
+                } else if (!shouldReconnect) {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ type: "disconnected", message: "Session logged out" }));
+                    }
+                    waActiveSessions.delete(userId!);
+                    try { fs.rmSync(authDir, { recursive: true, force: true }); } catch { /* ignore */ }
                 }
             }
         });
 
-        // Save credentials on update
         sock.ev.on("creds.update", saveCreds);
 
-        // Handle client disconnect
-        ws.on("close", () => {
-            console.log(`[whatsapp] Client disconnected: ${userId}`);
-            const session = waActiveSessions.get(userId);
-            if (session) {
-                try { session.sock.end(undefined); } catch { /* ignore */ }
-                waActiveSessions.delete(userId);
-            }
-        });
+        // Phone pairing code — request after socket initializes
+        if (pairingPhone) {
+            setTimeout(async () => {
+                try {
+                    const code = await sock.requestPairingCode(pairingPhone!);
+                    console.log(`[whatsapp] Pairing code issued for ${userId}: ${code}`);
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({ type: "pairing_code", code }));
+                    }
+                } catch (err) {
+                    console.error(`[whatsapp] Pairing code error for ${userId}:`, err);
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            type: "error",
+                            message: err instanceof Error ? err.message : "Failed to generate pairing code",
+                        }));
+                    }
+                }
+            }, 3000);
+        }
+    }
 
+    try {
+        // Client messages
         ws.on("message", async (data: Buffer | ArrayBuffer | Buffer[]) => {
             try {
                 const msg = JSON.parse(data.toString());
+
                 if (msg.type === "disconnect") {
-                    // User wants to disconnect WhatsApp
                     console.log(`[whatsapp] User ${userId} requested disconnect`);
                     await redis.del(`backpack:channel:${userId}:whatsapp`);
-                    try { sock.end(undefined); } catch { /* ignore */ }
-                    try {
-                        fs.rmSync(authDir, { recursive: true, force: true });
-                    } catch { /* ignore */ }
-                    waActiveSessions.delete(userId);
+                    const session = waActiveSessions.get(userId!);
+                    if (session) { try { session.sock.end(undefined); } catch { /* */ } }
+                    try { fs.rmSync(authDir, { recursive: true, force: true }); } catch { /* */ }
+                    waActiveSessions.delete(userId!);
                     ws.send(JSON.stringify({ type: "disconnected", message: "WhatsApp unlinked" }));
                     ws.close();
                 }
-            } catch { /* ignore malformed messages */ }
+
+                if (msg.type === "pair_phone" && msg.phone) {
+                    // Strip everything non-numeric, remove leading + or 00
+                    let phone = msg.phone.replace(/[^0-9]/g, "");
+                    if (phone.startsWith("00")) phone = phone.slice(2);
+                    console.log(`[whatsapp] Phone pairing requested for ${userId}: ${phone}`);
+                    pairingPhone = phone;
+
+                    // Kill existing session and restart with pairing code
+                    const session = waActiveSessions.get(userId!);
+                    if (session) { try { session.sock.end(undefined); } catch { /* */ } }
+                    waActiveSessions.delete(userId!);
+                    try { fs.rmSync(authDir, { recursive: true, force: true }); } catch { /* */ }
+                    fs.mkdirSync(authDir, { recursive: true });
+
+                    ws.send(JSON.stringify({ type: "pairing_code_pending", message: "Generating pairing code..." }));
+                    await startBaileysSession();
+                }
+
+
+            } catch { /* ignore malformed */ }
         });
+
+        // Client disconnect — stop reconnect loop
+        ws.on("close", () => {
+            console.log(`[whatsapp] Client disconnected: ${userId}`);
+            clientClosed = true;
+            const session = waActiveSessions.get(userId!);
+            if (session) { try { session.sock.end(undefined); } catch { /* */ } }
+            waActiveSessions.delete(userId!);
+        });
+
+        // Start initial session (QR mode)
+        await startBaileysSession();
 
     } catch (err) {
         console.error(`[whatsapp] Setup error for ${userId}:`, err);
@@ -576,6 +627,23 @@ wssWhatsApp.on("connection", async (ws: WebSocket, req) => {
 // =============================================================================
 // Start Server
 // =============================================================================
+
+// Manual upgrade routing — required when multiple WSS share one HTTP server
+server.on("upgrade", (request, socket, head) => {
+    const pathname = new URL(request.url || "/", `http://${request.headers.host}`).pathname;
+
+    if (pathname === "/lyria") {
+        wss.handleUpgrade(request, socket, head, (ws) => {
+            wss.emit("connection", ws, request);
+        });
+    } else if (pathname === "/whatsapp") {
+        wssWhatsApp.handleUpgrade(request, socket, head, (ws) => {
+            wssWhatsApp.emit("connection", ws, request);
+        });
+    } else {
+        socket.destroy();
+    }
+});
 
 server.listen(PORT, () => {
     console.log(`[socket] Server listening on port ${PORT}`);
