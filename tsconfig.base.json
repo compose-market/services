@@ -3,6 +3,15 @@
         "target": "ES2022",
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
+        "baseUrl": ".",
+        "paths": {
+            "ethers": [
+                "./node_modules/ethers/lib.esm/index.d.ts"
+            ],
+            "ethers/*": [
+                "./node_modules/ethers/lib.esm/*"
+            ]
+        },
         "lib": [
             "ES2022",
             "DOM"

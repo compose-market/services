@@ -14,12 +14,10 @@ import http from "http";
 import WebSocket, { WebSocketServer } from "ws";
 import { GoogleGenAI } from "@google/genai";
 import { createClient, type RedisClientType } from "redis";
-import makeWASocket, {
-    useMultiFileAuthState,
-    DisconnectReason,
-    fetchLatestBaileysVersion,
-    type WASocket,
-} from "@whiskeysockets/baileys";
+import makeWASocket, { type WASocket } from "@whiskeysockets/baileys";
+import { useMultiFileAuthState } from "@whiskeysockets/baileys/lib/Utils/use-multi-file-auth-state.js";
+import { fetchLatestBaileysVersion } from "@whiskeysockets/baileys/lib/Utils/generics.js";
+import { DisconnectReason } from "@whiskeysockets/baileys/lib/Types/index.js";
 import { Boom } from "@hapi/boom";
 import QRCode from "qrcode";
 import path from "path";
@@ -478,7 +476,7 @@ wssWhatsApp.on("connection", async (ws: WebSocket, req) => {
 
         waActiveSessions.set(userId!, { sock, ws });
 
-        sock.ev.on("connection.update", async (update) => {
+        sock.ev.on("connection.update", async (update: any) => {
             const { connection, lastDisconnect, qr } = update;
 
             // QR code — only send if not in phone pairing mode
