@@ -15,6 +15,9 @@
 import "dotenv/config";
 import express, { type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+import type { Server as HttpServer } from "http";
 import { z } from "zod";
 import { createRegistryRouter, getServerByRegistryId } from "./registry.js";
 import { buildAgentCardFromRegistry } from "./builder.js";
@@ -77,7 +80,11 @@ const corsOptions = {
     'X-Requested-With',
     'x-session-active',                  // Session management
     'x-session-budget-remaining',        // Session budget
+    'x-session-user-address',            // Session user identity
     'x-manowar-internal',                // Internal bypass header
+    'x-compose-run-id',                  // Cross-service correlation
+    'x-idempotency-key',                 // Idempotency propagation
+    'x-tool-price',                      // Tool pricing metadata
     'access-control-expose-headers',     // CORS header passthrough (thirdweb quirk)
   ],
   exposedHeaders: [
@@ -103,6 +110,146 @@ app.use("/registry", createRegistryRouter());
 
 /** Runtime Server URL - where ALL execution happens */
 const RUNTIME_SERVER_URL = process.env.RUNTIME_SERVER_URL || "https://runtime.compose.market";
+const RUNTIME_RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
+const RUNTIME_MAX_ATTEMPTS = 4;
+const RUNTIME_BACKOFF_BASE_MS = 250;
+const RUNTIME_BACKOFF_MAX_MS = 3000;
+const RUNTIME_CIRCUIT_FAILURE_THRESHOLD = 8;
+const RUNTIME_CIRCUIT_OPEN_MS = 30_000;
+
+let runtimeFailureStreak = 0;
+let runtimeCircuitOpenedAt = 0;
+
+export function __resetRuntimeCircuitStateForTests(): void {
+  runtimeFailureStreak = 0;
+  runtimeCircuitOpenedAt = 0;
+}
+
+function runtimeCircuitIsOpen(): boolean {
+  if (runtimeCircuitOpenedAt === 0) {
+    return false;
+  }
+  const elapsed = Date.now() - runtimeCircuitOpenedAt;
+  if (elapsed >= RUNTIME_CIRCUIT_OPEN_MS) {
+    runtimeCircuitOpenedAt = 0;
+    runtimeFailureStreak = 0;
+    return false;
+  }
+  return true;
+}
+
+function recordRuntimeSuccess(): void {
+  runtimeFailureStreak = 0;
+  runtimeCircuitOpenedAt = 0;
+}
+
+function recordRuntimeFailure(): void {
+  runtimeFailureStreak += 1;
+  if (runtimeFailureStreak >= RUNTIME_CIRCUIT_FAILURE_THRESHOLD) {
+    runtimeCircuitOpenedAt = Date.now();
+  }
+}
+
+function getBackoffDelayMs(attempt: number): number {
+  const raw = Math.min(
+    RUNTIME_BACKOFF_MAX_MS,
+    RUNTIME_BACKOFF_BASE_MS * Math.pow(2, attempt - 1),
+  );
+  const jitter = Math.floor(Math.random() * 150);
+  return raw + jitter;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getRequestHeader(req: Request, key: string): string | undefined {
+  const value = req.headers[key.toLowerCase()];
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+  return typeof value === "string" ? value : undefined;
+}
+
+function buildRuntimeProxyHeaders(req: Request, includeContentType = false): Record<string, string> {
+  const headers: Record<string, string> = {};
+
+  if (includeContentType) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const passthroughHeaders = [
+    "x-manowar-internal",
+    "x-session-active",
+    "x-session-budget-remaining",
+    "x-session-user-address",
+    "x-compose-run-id",
+    "x-idempotency-key",
+    "x-tool-price",
+    "x-chain-id",
+  ] as const;
+
+  for (const headerName of passthroughHeaders) {
+    const value = getRequestHeader(req, headerName);
+    if (value) {
+      headers[headerName] = value;
+    }
+  }
+
+  return headers;
+}
+
+function resolveRuntimeUrl(pathOrUrl: string): string {
+  if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
+    return pathOrUrl;
+  }
+  return `${RUNTIME_SERVER_URL}${pathOrUrl}`;
+}
+
+async function fetchRuntimeWithResilience(pathOrUrl: string, init?: RequestInit): Promise<globalThis.Response> {
+  if (runtimeCircuitIsOpen()) {
+    throw new Error("Runtime upstream circuit is open");
+  }
+
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= RUNTIME_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await fetch(resolveRuntimeUrl(pathOrUrl), init);
+      if (RUNTIME_RETRYABLE_STATUS.has(response.status) && attempt < RUNTIME_MAX_ATTEMPTS) {
+        recordRuntimeFailure();
+        await sleep(getBackoffDelayMs(attempt));
+        continue;
+      }
+
+      if (RUNTIME_RETRYABLE_STATUS.has(response.status)) {
+        recordRuntimeFailure();
+      } else {
+        recordRuntimeSuccess();
+      }
+      return response;
+    } catch (error) {
+      lastError = error;
+      recordRuntimeFailure();
+      if (attempt < RUNTIME_MAX_ATTEMPTS) {
+        await sleep(getBackoffDelayMs(attempt));
+      }
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Runtime upstream request failed");
+}
+
+async function readRuntimeJson(response: globalThis.Response): Promise<unknown> {
+  const text = await response.text();
+  if (!text) {
+    return {};
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { error: text };
+  }
+}
 
 // =============================================================================
 // Middleware
@@ -111,7 +258,11 @@ const RUNTIME_SERVER_URL = process.env.RUNTIME_SERVER_URL || "https://runtime.co
 // Request logging middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {
   const timestamp = new Date().toISOString();
-  console.log(`[${timestamp}] ${req.method} ${req.path}`);
+  const composeRunId = req.headers["x-compose-run-id"];
+  const idempotencyKey = req.headers["x-idempotency-key"];
+  console.log(
+    `[${timestamp}] ${req.method} ${req.path} run=${String(composeRunId || "-")} idem=${String(idempotencyKey || "-")}`,
+  );
   next();
 });
 
@@ -204,8 +355,8 @@ app.get(
   "/mcp/status",
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/status`);
-      const data = await response.json();
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/status`);
+      const data = await readRuntimeJson(response);
       res.json(data);
     } catch (error) {
       res.status(503).json({
@@ -225,8 +376,8 @@ app.get(
   asyncHandler(async (req: Request, res: Response) => {
     const slug = req.params.slug as string;
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/servers/${encodeURIComponent(slug)}/tools`);
-      const data = await response.json();
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/mcp/servers/${encodeURIComponent(slug)}/tools`);
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -286,20 +437,14 @@ app.post(
     try {
       // Use the new /mcp/servers/:serverId/tools/:toolName endpoint
       const toolName = parseResult.data.tool;
+      const headers = buildRuntimeProxyHeaders(req, true);
 
-      // Forward internal bypass header for nested calls
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      const internalSecret = req.headers["x-manowar-internal"] as string | undefined;
-      if (internalSecret) {
-        headers["x-manowar-internal"] = internalSecret;
-      }
-
-      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/servers/${encodeURIComponent(slug)}/tools/${encodeURIComponent(toolName)}`, {
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/mcp/servers/${encodeURIComponent(slug)}/tools/${encodeURIComponent(toolName)}`, {
         method: "POST",
         headers,
         body: JSON.stringify({ args: parseResult.data.args }),
       });
-      const data = await response.json();
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -346,18 +491,14 @@ app.post(
 
     // Proxy to Runtime server - forward internal bypass header for nested calls
     try {
-      const headers: Record<string, string> = { "Content-Type": "application/json" };
-      const internalSecret = req.headers["x-manowar-internal"] as string | undefined;
-      if (internalSecret) {
-        headers["x-manowar-internal"] = internalSecret;
-      }
+      const headers = buildRuntimeProxyHeaders(req, true);
 
-      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/spawn`, {
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/mcp/spawn`, {
         method: "POST",
         headers,
         body: JSON.stringify(req.body),
       });
-      const data = await response.json();
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -376,8 +517,8 @@ app.get(
   "/mcp/sessions",
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/sessions`);
-      const data = await response.json();
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/mcp/sessions`);
+      const data = await readRuntimeJson(response);
       res.json(data);
     } catch (error) {
       res.status(503).json({
@@ -397,8 +538,8 @@ app.get(
   asyncHandler(async (req: Request, res: Response) => {
     const sessionId = req.params.sessionId as string;
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}/tools`);
-      const data = await response.json();
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}/tools`);
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -443,12 +584,12 @@ app.post(
 
     // Proxy to Runtime server
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}/execute`, {
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}/execute`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: buildRuntimeProxyHeaders(req, true),
         body: JSON.stringify(req.body),
       });
-      const data = await response.json();
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -468,10 +609,10 @@ app.delete(
   asyncHandler(async (req: Request, res: Response) => {
     const sessionId = req.params.sessionId as string;
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}`, {
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/mcp/sessions/${encodeURIComponent(sessionId)}`, {
         method: "DELETE",
       });
-      const data = await response.json();
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -591,8 +732,8 @@ app.get(
   "/plugins",
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/goat/plugins`);
-      const data = await response.json();
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/goat/plugins`);
+      const data = await readRuntimeJson(response);
       res.json(data);
     } catch (error) {
       res.status(503).json({
@@ -611,8 +752,8 @@ app.get(
   "/plugins/status",
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/goat/status`);
-      const data = await response.json();
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/goat/status`);
+      const data = await readRuntimeJson(response);
       res.json(data);
     } catch (error) {
       res.status(503).json({
@@ -631,8 +772,8 @@ app.get(
   "/plugins/tools",
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/goat/tools`);
-      const data = await response.json();
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/goat/tools`);
+      const data = await readRuntimeJson(response);
       res.json(data);
     } catch (error) {
       res.status(503).json({
@@ -652,8 +793,8 @@ app.get(
   asyncHandler(async (req: Request, res: Response) => {
     const pluginId = req.params.pluginId as string;
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/goat/plugins/${encodeURIComponent(pluginId)}`);
-      const data = await response.json();
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/goat/plugins/${encodeURIComponent(pluginId)}`);
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -711,12 +852,14 @@ app.post(
     }
 
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/goat/${encodeURIComponent(pluginId)}/execute`, {
+      const response = await fetchRuntimeWithResilience(
+        `${RUNTIME_SERVER_URL}/goat/plugins/${encodeURIComponent(pluginId)}/tools/${encodeURIComponent(parseResult.data.tool)}`,
+        {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parseResult.data),
+        headers: buildRuntimeProxyHeaders(req, true),
+        body: JSON.stringify({ args: parseResult.data.args }),
       });
-      const data = await response.json();
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -744,8 +887,8 @@ app.get(
   "/eliza/status",
   asyncHandler(async (_req: Request, res: Response) => {
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/eliza/status`);
-      const data = await response.json();
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/eliza/status`);
+      const data = await readRuntimeJson(response);
       res.json(data);
     } catch (error) {
       res.status(503).json({
@@ -770,8 +913,8 @@ app.get(
       if (req.query.search) url.searchParams.set("search", String(req.query.search));
       if (req.query.category) url.searchParams.set("category", String(req.query.category));
 
-      const response = await fetch(url.toString());
-      const data = await response.json();
+      const response = await fetchRuntimeWithResilience(url.toString());
+      const data = await readRuntimeJson(response);
       res.json(data);
     } catch (error) {
       res.status(503).json({
@@ -791,8 +934,8 @@ app.get(
   asyncHandler(async (req: Request, res: Response) => {
     const pluginId = req.params.pluginId as string;
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}`);
-      const data = await response.json();
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}`);
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -813,8 +956,8 @@ app.get(
   asyncHandler(async (req: Request, res: Response) => {
     const pluginId = req.params.pluginId as string;
     try {
-      const response = await fetch(`${RUNTIME_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions`);
-      const data = await response.json();
+      const response = await fetchRuntimeWithResilience(`${RUNTIME_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions`);
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -835,10 +978,10 @@ app.get(
     const pluginId = req.params.pluginId as string;
     const actionName = req.params.actionName as string;
     try {
-      const response = await fetch(
+      const response = await fetchRuntimeWithResilience(
         `${RUNTIME_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions/${encodeURIComponent(actionName)}`
       );
-      const data = await response.json();
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -859,10 +1002,10 @@ app.get(
     const pluginId = req.params.pluginId as string;
     const actionName = req.params.actionName as string;
     try {
-      const response = await fetch(
+      const response = await fetchRuntimeWithResilience(
         `${RUNTIME_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/actions/${encodeURIComponent(actionName)}/example`
       );
-      const data = await response.json();
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -927,15 +1070,15 @@ app.post(
     }
 
     try {
-      const response = await fetch(
+      const response = await fetchRuntimeWithResilience(
         `${RUNTIME_SERVER_URL}/eliza/plugins/${encodeURIComponent(pluginId)}/execute`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: buildRuntimeProxyHeaders(req, true),
           body: JSON.stringify(parseResult.data),
         }
       );
-      const data = await response.json();
+      const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {
       res.status(503).json({
@@ -962,58 +1105,71 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 // Server Startup
 // =============================================================================
 
-const PORT = parseInt(process.env.PORT || "4001", 10);
-
-const server = app.listen(PORT, "0.0.0.0", () => {
-  console.log(`\n🔌 Connector Hub listening on http://0.0.0.0:${PORT}`);
-  console.log(`\n🚀 Runtime Server: ${RUNTIME_SERVER_URL}`);
-  console.log("\n⚠️  NOTE: All execution is proxied to Runtime Server - no local execution!");
-  console.log("\nEndpoints:");
-  console.log("  GET  /health              - Health check");
-  console.log("");
-  console.log("  GET  /registry/servers    - List MCP servers");
-  console.log("  GET  /registry/servers/search - Search MCP servers");
-  console.log("  GET  /registry/servers/:id - Get server by ID");
-  console.log("  GET  /registry/categories - List categories");
-  console.log("  GET  /registry/tags       - List tags");
-  console.log("  GET  /registry/meta       - Registry metadata");
-  console.log("");
-  console.log("  GET  /mcp/servers         - [PROXY] List spawnable MCP servers");
-  console.log("  GET  /mcp/status          - [PROXY] Spawned server status");
-  console.log("  GET  /mcp/servers/:slug/tools - [PROXY] List tools");
-  console.log("  POST /mcp/servers/:slug/call  - [PROXY] Call tool");
-  console.log("");
-  console.log("  POST /cards/from-registry - Generate agent card");
-  console.log("  POST /cards/validate      - Validate agent card");
-  console.log("  POST /cards/preview       - Preview agent card");
-  console.log("");
-  console.log("  GET  /plugins/status      - [PROXY] GOAT runtime status");
-  console.log("  GET  /plugins/tools       - [PROXY] List all GOAT tools");
-  console.log("  GET  /plugins/:id/tools   - [PROXY] List plugin tools");
-  console.log("  POST /plugins/:id/execute - [PROXY] Execute plugin tool");
-  console.log("");
-  console.log("  GET  /eliza/status        - [PROXY] ElizaOS runtime status");
-  console.log("  GET  /eliza/agents/:id/actions - [PROXY] List agent actions");
-  console.log("  POST /eliza/agents/:id/message - [PROXY] Send message");
-  console.log("  POST /eliza/agents/:id/actions/:name - [PROXY] Execute action");
-  console.log("");
-});
-
-// Graceful shutdown
-process.on("SIGTERM", async () => {
-  console.log("\nReceived SIGTERM, shutting down gracefully...");
-  server.close(() => {
-    console.log("Server closed");
-    process.exit(0);
+function installSignalHandlers(server: HttpServer): void {
+  process.on("SIGTERM", async () => {
+    console.log("\nReceived SIGTERM, shutting down gracefully...");
+    server.close(() => {
+      console.log("Server closed");
+      process.exit(0);
+    });
   });
-});
 
-process.on("SIGINT", async () => {
-  console.log("\nReceived SIGINT, shutting down gracefully...");
-  server.close(() => {
-    console.log("Server closed");
-    process.exit(0);
+  process.on("SIGINT", async () => {
+    console.log("\nReceived SIGINT, shutting down gracefully...");
+    server.close(() => {
+      console.log("Server closed");
+      process.exit(0);
+    });
   });
-});
+}
+
+export function startConnectorServer(port?: number): HttpServer {
+  const resolvedPort = port ?? parseInt(process.env.PORT || "4001", 10);
+  const server = app.listen(resolvedPort, "0.0.0.0", () => {
+    console.log(`\n🔌 Connector Hub listening on http://0.0.0.0:${resolvedPort}`);
+    console.log(`\n🚀 Runtime Server: ${RUNTIME_SERVER_URL}`);
+    console.log("\n⚠️  NOTE: All execution is proxied to Runtime Server - no local execution!");
+    console.log("\nEndpoints:");
+    console.log("  GET  /health              - Health check");
+    console.log("");
+    console.log("  GET  /registry/servers    - List MCP servers");
+    console.log("  GET  /registry/servers/search - Search MCP servers");
+    console.log("  GET  /registry/servers/:id - Get server by ID");
+    console.log("  GET  /registry/categories - List categories");
+    console.log("  GET  /registry/tags       - List tags");
+    console.log("  GET  /registry/meta       - Registry metadata");
+    console.log("");
+    console.log("  GET  /mcp/servers         - [PROXY] List spawnable MCP servers");
+    console.log("  GET  /mcp/status          - [PROXY] Spawned server status");
+    console.log("  GET  /mcp/servers/:slug/tools - [PROXY] List tools");
+    console.log("  POST /mcp/servers/:slug/call  - [PROXY] Call tool");
+    console.log("");
+    console.log("  POST /cards/from-registry - Generate agent card");
+    console.log("  POST /cards/validate      - Validate agent card");
+    console.log("  POST /cards/preview       - Preview agent card");
+    console.log("");
+    console.log("  GET  /plugins/status      - [PROXY] GOAT runtime status");
+    console.log("  GET  /plugins/tools       - [PROXY] List all GOAT tools");
+    console.log("  GET  /plugins/:id/tools   - [PROXY] List plugin tools");
+    console.log("  POST /plugins/:id/execute - [PROXY] Execute plugin tool");
+    console.log("");
+    console.log("  GET  /eliza/status        - [PROXY] ElizaOS runtime status");
+    console.log("  GET  /eliza/agents/:id/actions - [PROXY] List agent actions");
+    console.log("  POST /eliza/agents/:id/message - [PROXY] Send message");
+    console.log("  POST /eliza/agents/:id/actions/:name - [PROXY] Execute action");
+    console.log("");
+  });
+
+  installSignalHandlers(server);
+  return server;
+}
+
+const isMainModule = process.argv[1]
+  ? path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+  : false;
+
+if (isMainModule) {
+  startConnectorServer();
+}
 
 export default app;

@@ -39,10 +39,10 @@ export function validateAgentCard(input: unknown): ValidationResult {
     const path =
       issue.path && issue.path.length
         ? issue.path
-            .map((segment) =>
-              typeof segment === "number" ? `[${segment}]` : segment
-            )
-            .join(".")
+          .map((segment) =>
+            typeof segment === "number" ? `[${segment}]` : segment
+          )
+          .join(".")
         : "(root)";
 
     return {
@@ -61,7 +61,7 @@ export function validateAgentCard(input: unknown): ValidationResult {
  */
 export function assertValidAgentCard(input: unknown): ComposeAgentCard {
   const result = validateAgentCard(input);
-  
+
   if (!result.ok) {
     const msg =
       "Invalid ComposeAgentCard:\n" +
@@ -72,7 +72,7 @@ export function assertValidAgentCard(input: unknown): ComposeAgentCard {
     error.details = result.errors;
     throw error;
   }
-  
+
   return result.card;
 }
 
@@ -85,21 +85,25 @@ export function validatePartialCard(
   input: Record<string, unknown>,
   _fields: (keyof ComposeAgentCard)[]
 ): ValidationError[] {
-  // For partial validation, just validate the whole input as a partial card
-  const result = composeAgentCardSchema.partial().safeParse(input);
-  
+  // composeAgentCardSchema includes refinements; zod v4 disallows .partial()
+  // directly on refined object schemas. For incremental validation, use the
+  // base shape without cross-field refinements.
+  const baseShape = (composeAgentCardSchema as unknown as z.ZodObject<any>).shape;
+  const partialSchema = z.object(baseShape).partial();
+  const result = partialSchema.safeParse(input);
+
   if (result.success) {
     return [];
   }
-  
+
   return result.error.issues.map((issue) => {
     const path =
       issue.path && issue.path.length
         ? issue.path
-            .map((segment) =>
-              typeof segment === "number" ? `[${segment}]` : String(segment)
-            )
-            .join(".")
+          .map((segment) =>
+            typeof segment === "number" ? `[${segment}]` : String(segment)
+          )
+          .join(".")
         : "(root)";
     return { path, message: issue.message };
   });
@@ -114,7 +118,7 @@ export function formatValidationErrors(errors: ValidationError[]): string {
   if (errors.length === 0) {
     return "No errors";
   }
-  
+
   return errors
     .map((e, i) => `${i + 1}. ${e.path}: ${e.message}`)
     .join("\n");
@@ -125,11 +129,11 @@ export function formatValidationErrors(errors: ValidationError[]): string {
  */
 export function hasValidX402Config(card: ComposeAgentCard): boolean {
   const x402Methods = card.payments.filter((p) => p.method === "x402");
-  
+
   if (x402Methods.length === 0) {
     return false;
   }
-  
+
   // Check that at least one x402 method has valid config
   return x402Methods.some((p) => {
     return (
@@ -160,4 +164,3 @@ export function hasOnchainIdentity(card: ComposeAgentCard): boolean {
     card.onchain.agentId
   );
 }
-
