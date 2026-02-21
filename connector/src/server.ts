@@ -855,10 +855,10 @@ app.post(
       const response = await fetchRuntimeWithResilience(
         `${RUNTIME_SERVER_URL}/goat/plugins/${encodeURIComponent(pluginId)}/tools/${encodeURIComponent(parseResult.data.tool)}`,
         {
-        method: "POST",
-        headers: buildRuntimeProxyHeaders(req, true),
-        body: JSON.stringify({ args: parseResult.data.args }),
-      });
+          method: "POST",
+          headers: buildRuntimeProxyHeaders(req, true),
+          body: JSON.stringify({ args: parseResult.data.args }),
+        });
       const data = await readRuntimeJson(response);
       res.status(response.status).json(data);
     } catch (error) {

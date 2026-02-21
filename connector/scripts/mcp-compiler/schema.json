@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MCPServerMetadata",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Clean human-readable name without author, 'MCP', 'Server', or source suffixes",
+      "maxLength": 50,
+      "examples": ["CodeAnalysis", "GitHub", "Filesystem"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Concise 2-line description of the server's purpose and capabilities",
+      "maxLength": 200,
+      "examples": ["Provides file system operations for reading, writing, and managing files.\nSupports directory listing, file search, and path manipulation."]
+    },
+    "tags": {
+      "type": "array",
+      "description": "2-3 relevant tags for categorization and search",
+      "items": {
+        "type": "string",
+        "maxLength": 20
+      },
+      "minItems": 2,
+      "maxItems": 3,
+      "examples": [["filesystem", "files", "storage"], ["github", "git", "version-control"]]
+    }
+  },
+  "required": ["name", "description", "tags"],
+  "additionalProperties": false
+}

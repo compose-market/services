@@ -1,0 +1,12 @@
+{
+  "name": "mcp-compiler",
+  "version": "1.0.0",
+  "description": "MCP Server Compiler - Cleans metadata and discovers tools via spawning",
+  "type": "commonjs",
+  "scripts": {
+    "spawn": "node spawner.cjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}

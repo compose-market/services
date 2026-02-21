@@ -384,12 +384,12 @@ let redisClient: RedisClientType | null = null;
 async function getRedis(): Promise<RedisClientType> {
     if (redisClient?.isOpen) return redisClient;
 
-    const endpoint = process.env.REDIS_DATABASE_PUBLIC_ENDPOINT;
-    const password = process.env.REDIS_DEFAULT_PASSWORD;
+    const endpoint = process.env.REDIS_KEYS_DATABASE_PUBLIC_ENDPOINT;
+    const password = process.env.REDIS_KEYS_DEFAULT_PASSWORD;
     const useTls = process.env.REDIS_TLS === "true";
 
     if (!endpoint || !password) {
-        throw new Error("Redis config missing: REDIS_DATABASE_PUBLIC_ENDPOINT + REDIS_DEFAULT_PASSWORD");
+        throw new Error("Redis config missing: REDIS_KEYS_DATABASE_PUBLIC_ENDPOINT + REDIS_DEFAULT_PASSWORD");
     }
 
     const [host, portStr] = endpoint.split(":");
