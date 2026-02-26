@@ -250,6 +250,8 @@ const thirdwebFacilitator = serverClient && SERVER_WALLET_ADDRESS
     })
     : null;
 
+const MANOWAR_INTERNAL_SECRET = process.env.MANOWAR_INTERNAL_SECRET;
+
 // =============================================================================
 // Default Pricing (in USDC wei - 6 decimals)
 // =============================================================================
@@ -291,8 +293,20 @@ export async function handleX402Payment(
     resourceUrl: string,
     method: string,
     amountWei: string = DEFAULT_PRICES.MCP_TOOL_CALL,
+    internalSecret?: string,
     chainId?: number,
 ): Promise<X402Result> {
+    if (
+        (MANOWAR_INTERNAL_SECRET && internalSecret === MANOWAR_INTERNAL_SECRET) ||
+        (NETWORK_INTERNAL_SECRET && internalSecret === NETWORK_INTERNAL_SECRET)
+    ) {
+        return {
+            status: 200,
+            responseBody: { success: true, internal: true },
+            responseHeaders: {},
+        };
+    }
+
     // Default chain if not specified (Cronos Testnet for x402 payments)
     const resolvedChainId = chainId || CHAIN_IDS.cronosTestnet;
     const useCronos = isCronosChain(resolvedChainId);
