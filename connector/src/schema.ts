@@ -95,7 +95,7 @@ export const skillPricingSchema = z.object({
  * Skill authentication config
  */
 export const skillAuthSchema = z.object({
-  /** Auth type: "none", "apiKey", "oauth2", "userWallet", "agentWallet" */
+  /** Auth type: "none", "apiKey", "oauth2", "userAddress", "agentWallet" */
   type: z.string().min(1),
 
   /** OAuth-style scopes or logical privileges */

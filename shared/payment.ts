@@ -297,8 +297,7 @@ export async function handleX402Payment(
     chainId?: number,
 ): Promise<X402Result> {
     if (
-        (MANOWAR_INTERNAL_SECRET && internalSecret === MANOWAR_INTERNAL_SECRET) ||
-        (NETWORK_INTERNAL_SECRET && internalSecret === NETWORK_INTERNAL_SECRET)
+        (MANOWAR_INTERNAL_SECRET && internalSecret === MANOWAR_INTERNAL_SECRET)
     ) {
         return {
             status: 200,

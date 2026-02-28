@@ -408,11 +408,13 @@ app.post(
     );
 
     const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
+    const internalSecret = getRequestHeader(req, "x-manowar-internal");
     const paymentResult = await handleX402Payment(
       paymentInfo.paymentData,
       resourceUrl,
       "POST",
       DEFAULT_PRICES.MCP_TOOL_CALL,
+      internalSecret,
       paymentInfo.chainId, // Multichain support
     );
 
@@ -472,11 +474,13 @@ app.post(
     );
 
     const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
+    const internalSecret = getRequestHeader(req, "x-manowar-internal");
     const paymentResult = await handleX402Payment(
       paymentInfo.paymentData,
       resourceUrl,
       "POST",
       DEFAULT_PRICES.MCP_TOOL_CALL, // Same as tool execution
+      internalSecret,
       paymentInfo.chainId, // Multichain support
     );
 
@@ -565,11 +569,13 @@ app.post(
     );
 
     const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
+    const internalSecret = getRequestHeader(req, "x-manowar-internal");
     const paymentResult = await handleX402Payment(
       paymentInfo.paymentData,
       resourceUrl,
       "POST",
       DEFAULT_PRICES.MCP_TOOL_CALL,
+      internalSecret,
       paymentInfo.chainId, // Multichain support
     );
 
@@ -825,11 +831,13 @@ app.post(
     );
 
     const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
+    const internalSecret = getRequestHeader(req, "x-manowar-internal");
     const paymentResult = await handleX402Payment(
       paymentInfo.paymentData,
       resourceUrl,
       "POST",
       DEFAULT_PRICES.GOAT_EXECUTE,
+      internalSecret,
       paymentInfo.chainId, // Multichain support
     );
 
@@ -1042,11 +1050,13 @@ app.post(
     );
 
     const resourceUrl = `https://${req.get("host")}${req.originalUrl}`;
+    const internalSecret = getRequestHeader(req, "x-manowar-internal");
     const paymentResult = await handleX402Payment(
       paymentInfo.paymentData,
       resourceUrl,
       "POST",
       DEFAULT_PRICES.ELIZA_ACTION,
+      internalSecret,
       paymentInfo.chainId, // Multichain support
     );
 
