@@ -1,10 +1,11 @@
 .env
 /node_modules
 /dist
-/connector/data
 /connector/dist
 /exporter/data
 /exporter/dist
 /sandbox/data
 /sandbox/dist
-scripts
+/connector/scripts/test-commands.ts
+/connector/scripts/test-extraction.ts
+/connector/scripts/README.md

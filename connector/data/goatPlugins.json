@@ -1,0 +1,980 @@
+{
+  "source": "npm:@goat-sdk/plugin-*",
+  "updatedAt": "2025-12-02T19:23:54.879Z",
+  "count": 59,
+  "plugins": [
+    {
+      "id": "goat-erc20",
+      "name": "Erc20",
+      "slug": "erc20",
+      "namespace": "goat-sdk",
+      "description": "Erc20 - Token transfers and balances",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.2.14",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-kim",
+      "name": "Kim",
+      "slug": "kim",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Kim",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.13",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-coingecko",
+      "name": "Coingecko",
+      "slug": "coingecko",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Coingecko",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.2.10",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-jupiter",
+      "name": "Jupiter",
+      "slug": "jupiter",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Jupiter",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.2.17",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-lifi",
+      "name": "Lifi",
+      "slug": "lifi",
+      "namespace": "goat-sdk",
+      "description": "Lifi - DeFi protocol integration",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "defi"
+      ],
+      "version": "0.1.0",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-uniswap",
+      "name": "Uniswap",
+      "slug": "uniswap",
+      "namespace": "goat-sdk",
+      "description": "Uniswap - Token swaps and DEX trading",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.2.16",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-crossmint-headless-checkout",
+      "name": "Crossmint headless checkout",
+      "slug": "crossmint-headless-checkout",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Crossmint Headless Checkout",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.0.14",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-debridge",
+      "name": "Debridge",
+      "slug": "debridge",
+      "namespace": "goat-sdk",
+      "description": "Debridge - Cross-chain bridge transfers",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "bridge",
+        "debridge"
+      ],
+      "version": "0.0.8",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://app.debridge.finance/",
+      "source": "goat"
+    },
+    {
+      "id": "goat-polymarket",
+      "name": "Polymarket",
+      "slug": "polymarket",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Polymarket",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.3.14",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-modespray",
+      "name": "Modespray",
+      "slug": "modespray",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Modespray",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "spray",
+        "tooling"
+      ],
+      "version": "0.1.9",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-dexscreener",
+      "name": "Dexscreener",
+      "slug": "dexscreener",
+      "namespace": "goat-sdk",
+      "description": "Dexscreener - Token swaps and DEX trading",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "bridge",
+        "dexscreener"
+      ],
+      "version": "0.1.9",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://dexscreener.com/",
+      "source": "goat"
+    },
+    {
+      "id": "goat-1inch",
+      "name": "1inch",
+      "slug": "1inch",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for 1inch",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.9",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-zerodev-global-address",
+      "name": "Zerodev global address",
+      "slug": "zerodev-global-address",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Zerodev Global Address",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.7",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-0x",
+      "name": "0x",
+      "slug": "0x",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for 0x",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.11",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-pumpfun",
+      "name": "Pumpfun",
+      "slug": "pumpfun",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Pumpfun",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.10",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-erc721",
+      "name": "Erc721",
+      "slug": "erc721",
+      "namespace": "goat-sdk",
+      "description": "Erc721 - NFT minting and trading",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.22",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-tensor",
+      "name": "Tensor",
+      "slug": "tensor",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Tensor",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.2.18",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-birdeye",
+      "name": "Birdeye",
+      "slug": "birdeye",
+      "namespace": "goat-sdk",
+      "description": "Birdeye - DeFi protocol integration",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "defi"
+      ],
+      "version": "0.1.7",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-coinmarketcap",
+      "name": "Coinmarketcap",
+      "slug": "coinmarketcap",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Coinmarketcap",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.6",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-spl-token",
+      "name": "Spl token",
+      "slug": "spl-token",
+      "namespace": "goat-sdk",
+      "description": "Spl Token - Token transfers and balances",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.2.19",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-zilliqa",
+      "name": "Zilliqa",
+      "slug": "zilliqa",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Zilliqa",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "zilliqa"
+      ],
+      "version": "1.0.4",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://zilliqa.com",
+      "source": "goat"
+    },
+    {
+      "id": "goat-ionic",
+      "name": "Ionic",
+      "slug": "ionic",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Ionic",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.6",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-farcaster",
+      "name": "Farcaster",
+      "slug": "farcaster",
+      "namespace": "goat-sdk",
+      "description": "Farcaster - Social protocol integration",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "farcaster",
+        "social"
+      ],
+      "version": "0.1.6",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-ironclad",
+      "name": "Ironclad",
+      "slug": "ironclad",
+      "namespace": "goat-sdk",
+      "description": "Ironclad - DeFi protocol integration",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "defi",
+        "lending"
+      ],
+      "version": "0.1.9",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-orca",
+      "name": "Orca",
+      "slug": "orca",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Orca",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.2.20",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-mode-governance",
+      "name": "Mode governance",
+      "slug": "mode-governance",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Mode Governance",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "mode",
+        "governance"
+      ],
+      "version": "0.0.12",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-superfluid",
+      "name": "Superfluid",
+      "slug": "superfluid",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Superfluid",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.10",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-jsonrpc",
+      "name": "Jsonrpc",
+      "slug": "jsonrpc",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Jsonrpc",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.6",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-curves",
+      "name": "Curves",
+      "slug": "curves",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Curves",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "form"
+      ],
+      "version": "0.0.6",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-allora",
+      "name": "Allora",
+      "slug": "allora",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Allora",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "allora"
+      ],
+      "version": "0.1.7",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-cosmosbank",
+      "name": "Cosmosbank",
+      "slug": "cosmosbank",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Cosmosbank",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.0.7",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-lulo",
+      "name": "Lulo",
+      "slug": "lulo",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Lulo",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.7",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-rugcheck",
+      "name": "Rugcheck",
+      "slug": "rugcheck",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Rugcheck",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "opensea"
+      ],
+      "version": "0.1.6",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-meteora",
+      "name": "Meteora",
+      "slug": "meteora",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Meteora",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.2.17",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-solana-nfts",
+      "name": "Solana nfts",
+      "slug": "solana-nfts",
+      "namespace": "goat-sdk",
+      "description": "Solana Nfts - NFT minting and trading",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.2.17",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-etherscan",
+      "name": "Etherscan",
+      "slug": "etherscan",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Etherscan",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "blockchain",
+        "etherscan"
+      ],
+      "version": "0.1.4",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-solana-magiceden",
+      "name": "Solana magiceden",
+      "slug": "solana-magiceden",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Solana Magiceden",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.2.18",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-mayan",
+      "name": "Mayan",
+      "slug": "mayan",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Mayan",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.8",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-renzo",
+      "name": "Renzo",
+      "slug": "renzo",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Renzo",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.8",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-nansen",
+      "name": "Nansen",
+      "slug": "nansen",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Nansen",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.7",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-opensea",
+      "name": "Opensea",
+      "slug": "opensea",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Opensea",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "opensea"
+      ],
+      "version": "0.1.6",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-balmy",
+      "name": "Balmy",
+      "slug": "balmy",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Balmy",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.14",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-hyperlane",
+      "name": "Hyperlane",
+      "slug": "hyperlane",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Hyperlane",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.0.5",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://hyperlane.xyz",
+      "source": "goat"
+    },
+    {
+      "id": "goat-plunderswap",
+      "name": "Plunderswap",
+      "slug": "plunderswap",
+      "namespace": "goat-sdk",
+      "description": "Plunderswap - Token swaps and DEX trading",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "zilliqa",
+        "plunderswap"
+      ],
+      "version": "1.1.4",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://plunderswap.com/",
+      "source": "goat"
+    },
+    {
+      "id": "goat-velodrome",
+      "name": "Velodrome",
+      "slug": "velodrome",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Velodrome",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.10",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-balancer",
+      "name": "Balancer",
+      "slug": "balancer",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Balancer",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.15",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-enso",
+      "name": "Enso",
+      "slug": "enso",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Enso",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.4",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-synth-api",
+      "name": "Synth api",
+      "slug": "synth-api",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Synth Api",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.4",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-erc1155",
+      "name": "Erc1155",
+      "slug": "erc1155",
+      "namespace": "goat-sdk",
+      "description": "Erc1155 - NFT minting and trading",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.3",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-mode-voting",
+      "name": "Mode voting",
+      "slug": "mode-voting",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Mode Voting",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.6",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-betswirl",
+      "name": "Betswirl",
+      "slug": "betswirl",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Betswirl",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "betting",
+        "casino",
+        "betswirl"
+      ],
+      "version": "0.1.2",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://www.betswirl.com",
+      "source": "goat"
+    },
+    {
+      "id": "goat-ens",
+      "name": "Ens",
+      "slug": "ens",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Ens",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.4",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-sns",
+      "name": "Sns",
+      "slug": "sns",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Sns",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "solana",
+        "sns"
+      ],
+      "version": "0.1.9",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-avnu",
+      "name": "Avnu",
+      "slug": "avnu",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Avnu",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.4",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-starknet-token",
+      "name": "Starknet token",
+      "slug": "starknet-token",
+      "namespace": "goat-sdk",
+      "description": "Starknet Token - Token transfers and balances",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.4",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-bmx",
+      "name": "Bmx",
+      "slug": "bmx",
+      "namespace": "goat-sdk",
+      "description": "Bmx - DeFi protocol integration",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3",
+        "defi"
+      ],
+      "version": "0.1.2",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-irys",
+      "name": "Irys",
+      "slug": "irys",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Irys",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.1",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-merkl",
+      "name": "Merkl",
+      "slug": "merkl",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Merkl",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.3",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    },
+    {
+      "id": "goat-hedgey",
+      "name": "Hedgey",
+      "slug": "hedgey",
+      "namespace": "goat-sdk",
+      "description": "GOAT SDK plugin for Hedgey",
+      "keywords": [
+        "ai",
+        "agents",
+        "web3"
+      ],
+      "version": "0.1.3",
+      "repository": "git+https://github.com/goat-sdk/goat.git",
+      "homepage": "https://ohmygoat.dev",
+      "source": "goat"
+    }
+  ]
+}

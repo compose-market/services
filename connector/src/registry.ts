@@ -2,7 +2,7 @@
  * MCP Registry Module
  * 
  * Loads servers from:
- * - Mcp dump (data/mcpServers.json)
+ * - MCP refined sources (data/refined: npxServers.json, httpServers.json, dockerServers.json, ghcrServers.json)
  * - GOAT plugins (data/goatPlugins.json)
  * - ElizaOS plugins (data/elizaPlugins.json)
  * - Internal tools (internal.ts)
@@ -21,6 +21,25 @@ import {
 } from "./internal.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Resolve data directory - works for both dev (src/) and prod (dist/connector/src/)
+// In dev: __dirname = connector/src -> ../data = connector/data
+// In prod: __dirname = connector/dist/connector/src -> ../../../data = connector/data
+function resolveDataDir(): string {
+  // Try relative path first (works in dev)
+  const devPath = path.resolve(__dirname, "../data");
+  // For production build, go up from dist/connector/src to connector root, then data
+  const prodPath = path.resolve(__dirname, "../../../data");
+  // Check which exists by looking for refined subdirectory
+  try {
+    require("fs").accessSync(path.join(devPath, "refined"));
+    return devPath;
+  } catch {
+    return prodPath;
+  }
+}
+const DATA_DIR = resolveDataDir();
+
 
 /** Mcp MCP server from the JSON dump */
 export interface McpServer {
@@ -190,24 +209,58 @@ function normalizeToCanonicalKey(slug: string, origin: ServerOrigin): string {
 }
 
 /**
- * Deduplicate records by canonical key.
+ * Clean a name/slug to a normalized format for registryId.
+ * Matches logic from mcp/scripts/build-images.ts (lines 604-629).
+ * 
+ * Input: "Context7 MCP by renCosta2025 | Glama"
+ * Output: "context7"
+ * 
+ * Input: "@modelcontextprotocol/server-github"
+ * Output: "github"
+ */
+function cleanSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/^@[\w-]+\//, '')                     // Remove npm scope @scope/
+    .replace(/^model-?context-?protocol[/-]?/gi, '') // Remove "modelcontextprotocol" prefix
+    .replace(/^io-github-[\w-]*-?/gi, '')          // Remove "io-github-*" prefix
+    .replace(/^io-/gi, '')                         // Remove "io-" prefix
+    .replace(/^github-/gi, '')                     // Remove "github-" prefix  
+    .replace(/\s*mcp\s*server\s*/gi, '')           // Remove "MCP Server"
+    .replace(/\s*server\s*/gi, '')                 // Remove "Server"
+    .replace(/\s*mcp\s*/gi, '')                    // Remove "MCP"
+    .replace(/-mcp$/gi, '')                        // Remove trailing "-mcp"
+    .replace(/^mcp-/gi, '')                        // Remove leading "mcp-"
+    .replace(/-official$/gi, '')                   // Remove trailing "-official"
+    .replace(/^official-/gi, '')                   // Remove leading "official-"
+    .replace(/\s*by\s+[\w-]+/gi, '')               // Remove "by author"
+    .replace(/\s*\|\s*.+$/g, '')                   // Remove "| Glama" etc
+    .replace(/^goat[:-]/, '')                      // Remove goat prefix
+    .replace(/^eliza[:-]/, '')                     // Remove eliza prefix
+    .replace(/[^a-z0-9-]/g, '-')                   // Special chars to dashes
+    .replace(/--+/g, '-')                          // Double dashes to single
+    .replace(/^-+|-+$/g, '');                      // Trim dashes
+}
+
+/**
+ * Deduplicate records by registryId (after cleanSlug normalization).
  * Merges metadata and keeps the highest-priority source as primary.
  */
 function deduplicateRecords(records: UnifiedServerRecord[]): UnifiedServerRecord[] {
-  const byCanonicalKey = new Map<string, UnifiedServerRecord[]>();
+  const byRegistryId = new Map<string, UnifiedServerRecord[]>();
 
-  // Group by canonical key
+  // Group by registryId (which is now the clean slug format: origin:cleanSlug)
   for (const record of records) {
-    const key = record.canonicalKey;
-    const existing = byCanonicalKey.get(key) || [];
+    const key = record.registryId;
+    const existing = byRegistryId.get(key) || [];
     existing.push(record);
-    byCanonicalKey.set(key, existing);
+    byRegistryId.set(key, existing);
   }
 
   const deduplicated: UnifiedServerRecord[] = [];
   let mergedCount = 0;
 
-  for (const [key, group] of byCanonicalKey) {
+  for (const [key, group] of byRegistryId) {
     if (group.length === 1) {
       // No duplicates
       deduplicated.push(group[0]);
@@ -293,17 +346,71 @@ interface PluginRegistryData {
 
 
 /**
- * Load MCP servers from static JSON file
+ * Load NPX MCP servers from refined JSON file
  */
-async function loadMcpServers(): Promise<RegistryData | null> {
-  const filePath = path.resolve(__dirname, "../../../data/mcpServers.json");
+async function loadNpxServers(): Promise<RegistryData | null> {
+  const filePath = path.resolve(DATA_DIR, "refined/npxServers.json");
   try {
     const raw = await fs.readFile(filePath, "utf8");
     return JSON.parse(raw) as RegistryData;
   } catch (err: unknown) {
     const error = err as NodeJS.ErrnoException;
     if (error.code === "ENOENT") {
-      console.warn(`[registry] mcpServers.json not found at: ${filePath}`);
+      console.warn(`[registry] npxServers.json not found at: ${filePath}`);
+      return null;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Load HTTP/SSE MCP servers from refined JSON file
+ */
+async function loadHttpServers(): Promise<RegistryData | null> {
+  const filePath = path.resolve(DATA_DIR, "refined/httpServers.json");
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    return JSON.parse(raw) as RegistryData;
+  } catch (err: unknown) {
+    const error = err as NodeJS.ErrnoException;
+    if (error.code === "ENOENT") {
+      console.warn(`[registry] httpServers.json not found at: ${filePath}`);
+      return null;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Load external Docker MCP servers from refined JSON file
+ */
+async function loadDockerServers(): Promise<RegistryData | null> {
+  const filePath = path.resolve(DATA_DIR, "refined/dockerServers.json");
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    return JSON.parse(raw) as RegistryData;
+  } catch (err: unknown) {
+    const error = err as NodeJS.ErrnoException;
+    if (error.code === "ENOENT") {
+      console.warn(`[registry] dockerServers.json not found at: ${filePath}`);
+      return null;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Load GHCR containerized MCP servers from refined JSON file
+ */
+async function loadGhcrServers(): Promise<RegistryData | null> {
+  const filePath = path.resolve(DATA_DIR, "refined/ghcrServers.json");
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    return JSON.parse(raw) as RegistryData;
+  } catch (err: unknown) {
+    const error = err as NodeJS.ErrnoException;
+    if (error.code === "ENOENT") {
+      console.warn(`[registry] ghcrServers.json not found at: ${filePath}`);
       return null;
     }
     throw err;
@@ -370,12 +477,12 @@ function normalizeRegistry(
       const isExecutable = EXECUTABLE_GOAT_PLUGINS.has(canonicalKey);
 
       records.push({
-        registryId: `goat:${p.id}`,
+        registryId: `goat:${cleanSlug(p.name)}`,
         origin: "goat",
         type: "plugin",
         sources: ["goat"],
         canonicalKey,
-        name: p.name,
+        name: cleanSlug(p.name),
         namespace: p.namespace,
         slug: p.slug,
         description: p.description,
@@ -404,12 +511,12 @@ function normalizeRegistry(
       else if (p.keywords.includes("ai") || p.keywords.includes("llm")) category = "ai";
 
       records.push({
-        registryId: `eliza:${p.id}`,
+        registryId: `eliza:${cleanSlug(p.name)}`,
         origin: "eliza",
         type: "plugin",
         sources: ["eliza"],
         canonicalKey,
-        name: p.name,
+        name: cleanSlug(p.name),
         namespace: p.namespace,
         slug: p.slug,
         description: p.description,
@@ -475,12 +582,12 @@ function normalizeRegistry(
       const isExecutable = true;
 
       records.push({
-        registryId: `mcp:${s.id}`,
+        registryId: `mcp:${cleanSlug(s.name || s.slug || s.id)}`,
         origin: "mcp",
         type: "plugin",
         sources: ["mcp"],  // All MCP servers are treated as MCP origin
         canonicalKey,
-        name: s.name || s.slug || s.id,
+        name: cleanSlug(s.name || s.slug || s.id),
         namespace: s.namespace,
         slug: s.slug,
         description: desc,
@@ -556,6 +663,81 @@ function generateTags(name: string, namespace: string, description: string): str
 }
 
 /**
+ * Resolve a server by flexible ID matching
+ * Tries multiple strategies to find a server:
+ * 1. Exact registryId match
+ * 2. With mcp: prefix added
+ * 3. By slug field
+ * 4. By cleanSlug of name
+ * 5. Partial slug match (e.g., "perplexity" matches "perplexity-web-search")
+ */
+export async function resolveServerByFlexibleId(
+  serverId: string
+): Promise<UnifiedServerRecord | undefined> {
+  const registry = await getRegistry();
+  const normalizedInput = serverId.toLowerCase().replace(/^mcp[:-]/, '');
+
+  // 1. Exact registryId match
+  let server = registry.find(s => s.registryId === serverId);
+  if (server) {
+    console.log(`[registry] Resolved "${serverId}" by exact registryId`);
+    return server;
+  }
+
+  // 2. Try with mcp: prefix
+  server = registry.find(s => s.registryId === `mcp:${serverId}`);
+  if (server) {
+    console.log(`[registry] Resolved "${serverId}" by mcp: prefix -> ${server.registryId}`);
+    return server;
+  }
+
+  // 3. By slug field (exact)
+  server = registry.find(s => s.slug === serverId || s.slug === normalizedInput);
+  if (server) {
+    console.log(`[registry] Resolved "${serverId}" by slug -> ${server.registryId}`);
+    return server;
+  }
+
+  // 4. By name (cleanSlug comparison)
+  server = registry.find(s => s.name === normalizedInput || cleanSlug(s.name) === normalizedInput);
+  if (server) {
+    console.log(`[registry] Resolved "${serverId}" by name/cleanSlug -> ${server.registryId}`);
+    return server;
+  }
+
+  // 5. Partial slug match (e.g., "perplexity" matches "perplexity-web-search")
+  // Prefer shorter slugs for more specific matches
+  const partialMatches = registry
+    .filter(s => s.slug.includes(normalizedInput) || s.name.includes(normalizedInput))
+    .sort((a, b) => a.slug.length - b.slug.length);
+  if (partialMatches.length > 0) {
+    server = partialMatches[0];
+    console.log(`[registry] Resolved "${serverId}" by partial match -> ${server.registryId} (${partialMatches.length} candidates)`);
+    return server;
+  }
+
+  // 6. Try with common suffixes removed/added
+  const variations = [
+    `${normalizedInput}-web-search`,
+    `${normalizedInput}-search`,
+    `${normalizedInput}-mcp`,
+    normalizedInput.replace(/-web-search$/, ''),
+    normalizedInput.replace(/-search$/, ''),
+    normalizedInput.replace(/-mcp$/, ''),
+  ];
+  for (const variation of variations) {
+    server = registry.find(s => s.slug === variation || s.name === variation);
+    if (server) {
+      console.log(`[registry] Resolved "${serverId}" by variation "${variation}" -> ${server.registryId}`);
+      return server;
+    }
+  }
+
+  console.warn(`[registry] Could not resolve server: ${serverId}`);
+  return undefined;
+}
+
+/**
  * Get spawn configuration for an MCP server
  * Dynamically looks up server in registry and returns spawn config based on transport type
  */
@@ -567,11 +749,11 @@ export async function getServerSpawnConfig(serverId: string): Promise<{
   image?: string;
   remoteUrl?: string;
 } | null> {
-  // Look up server in registry
-  const server = await getServerByRegistryId(serverId);
+  // Use flexible resolution instead of direct lookup
+  const server = await resolveServerByFlexibleId(serverId);
 
   if (!server) {
-    console.warn(`[registry] Server not found: ${serverId}`);
+    console.warn(`[registry] Server not found after flexible resolution: ${serverId}`);
     return null;
   }
 
@@ -638,19 +820,37 @@ export async function getServerSpawnConfig(serverId: string): Promise<{
  */
 export async function getRegistry(): Promise<UnifiedServerRecord[]> {
   if (!REGISTRY) {
-    const [mcpData, goatData, elizaData] = await Promise.all([
-      loadMcpServers(),
+    const [npxData, httpData, dockerData, ghcrData, goatData, elizaData] = await Promise.all([
+      loadNpxServers(),
+      loadHttpServers(),
+      loadDockerServers(),
+      loadGhcrServers(),
       loadGoatPlugins(),
       loadElizaPlugins(),
     ]);
     const internalServers = getInternalServers();
 
-    REGISTRY = normalizeRegistry(mcpData, goatData, elizaData, internalServers);
+    // Combine all MCP sources into one array
+    const allMcpServers: McpServer[] = [];
+    if (npxData?.servers) allMcpServers.push(...npxData.servers);
+    if (httpData?.servers) allMcpServers.push(...httpData.servers);
+    if (dockerData?.servers) allMcpServers.push(...dockerData.servers);
+    if (ghcrData?.servers) allMcpServers.push(...ghcrData.servers);
+
+    // Create combined MCP data
+    const combinedMcpData: RegistryData = {
+      sources: ["npx", "http", "docker", "ghcr"],
+      updatedAt: new Date().toISOString(),
+      count: allMcpServers.length,
+      servers: allMcpServers,
+    };
+
+    REGISTRY = normalizeRegistry(combinedMcpData, goatData, elizaData, internalServers);
     REGISTRY_LOADED_AT = new Date().toISOString();
 
     console.log(
       `[registry] Loaded ${REGISTRY.length} servers ` +
-      `(${mcpData?.count || 0} mcp + ${goatData?.count || 0} goat + ${elizaData?.count || 0} eliza + ${internalServers.length} internal)`
+      `(${npxData?.count || 0} npx + ${httpData?.count || 0} http + ${dockerData?.count || 0} docker + ${ghcrData?.count || 0} ghcr + ${goatData?.count || 0} goat + ${elizaData?.count || 0} eliza + ${internalServers.length} internal)`
     );
   }
   return REGISTRY;
@@ -744,12 +944,13 @@ export async function searchRegistry(query: string): Promise<UnifiedServerRecord
 
 /**
  * Get a server by registry ID
+ * Uses flexible resolution to handle various naming patterns
  */
 export async function getServerByRegistryId(
   registryId: string
 ): Promise<UnifiedServerRecord | undefined> {
-  const registry = await getRegistry();
-  return registry.find((s) => s.registryId === registryId);
+  // Use the flexible resolution function for consistent lookup
+  return await resolveServerByFlexibleId(registryId);
 }
 
 /**
@@ -826,6 +1027,7 @@ export function createRegistryRouter(): express.Router {
       }
 
       // Filter by origin (supports comma-separated list)
+      // By default, exclude internal servers unless explicitly requested
       if (typeof origin === "string" && origin) {
         const validOrigins: ServerOrigin[] = ["mcp", "internal", "goat", "eliza"];
         const origins = origin.split(",").filter((o): o is ServerOrigin =>
@@ -834,6 +1036,9 @@ export function createRegistryRouter(): express.Router {
         if (origins.length > 0) {
           servers = servers.filter((s) => origins.includes(s.origin));
         }
+      } else {
+        // Default: exclude internal servers from public listings
+        servers = servers.filter((s) => s.origin !== "internal");
       }
 
       // Filter by category
@@ -881,6 +1086,7 @@ export function createRegistryRouter(): express.Router {
       }
 
       // Filter by origin (supports comma-separated list)
+      // By default, exclude internal servers unless explicitly requested
       if (typeof origin === "string" && origin) {
         const validOrigins: ServerOrigin[] = ["mcp", "internal", "goat", "eliza"];
         const origins = origin.split(",").filter((o): o is ServerOrigin =>
@@ -889,6 +1095,9 @@ export function createRegistryRouter(): express.Router {
         if (origins.length > 0) {
           servers = servers.filter((s) => origins.includes(s.origin));
         }
+      } else {
+        // Default: exclude internal servers from public listings
+        servers = servers.filter((s) => s.origin !== "internal");
       }
 
       // Filter by category
@@ -901,10 +1110,10 @@ export function createRegistryRouter(): express.Router {
         servers = servers.filter((s) => s.available);
       }
 
-      // Pagination
+      // Pagination - no hard cap, return all if limit not specified
       const offsetNum = parseInt(offset as string, 10) || 0;
-      const limitNum = Math.min(parseInt(limit as string, 10) || 50, 200);
-      const paginated = servers.slice(offsetNum, offsetNum + limitNum);
+      const limitNum = parseInt(limit as string, 10) || 0;
+      const paginated = limitNum > 0 ? servers.slice(offsetNum, offsetNum + limitNum) : servers.slice(offsetNum);
 
       res.json({
         total: servers.length,
@@ -931,12 +1140,12 @@ export function createRegistryRouter(): express.Router {
 
     try {
       const results = await searchRegistry(q);
-      const limit = Math.min(parseInt(req.query.limit as string, 10) || 50, 200);
+      const limit = parseInt(req.query.limit as string, 10) || 0;
 
       res.json({
         query: q,
         total: results.length,
-        servers: results.slice(0, limit),
+        servers: limit > 0 ? results.slice(0, limit) : results,
       });
     } catch (err) {
       console.error("[registry] /servers/search error:", err);
